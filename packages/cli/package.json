@@ -1,6 +1,6 @@
 {
   "name": "sygil",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "bin": { "sygil": "./dist/index.js" },
   "main": "./dist/index.js",

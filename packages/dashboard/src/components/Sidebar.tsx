@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, MessageSquare, BarChart3, FolderOpen, Flame, Clock, Wrench, GitBranch, FileEdit, Download } from "lucide-react";
+import { LayoutDashboard, MessageSquare, BarChart3, FolderOpen, Flame, Clock, Wrench, GitBranch, FileEdit, Download, CheckSquare, Brain, Activity, Settings, Puzzle } from "lucide-react";
 
 const NAV = [
   { to: "/", icon: LayoutDashboard, label: "Overview" },
@@ -10,7 +10,12 @@ const NAV = [
   { to: "/git", icon: GitBranch, label: "Git" },
   { to: "/changes", icon: FileEdit, label: "Changes" },
   { to: "/activity", icon: Flame, label: "Activity" },
+  { to: "/tasks", icon: CheckSquare, label: "Tasks" },
+  { to: "/memory", icon: Brain, label: "Memory" },
   { to: "/history", icon: Clock, label: "History" },
+  { to: "/diagnostics", icon: Activity, label: "Diagnostics" },
+  { to: "/config", icon: Settings, label: "Config" },
+  { to: "/extensions", icon: Puzzle, label: "Extensions" },
   { to: "/export", icon: Download, label: "Export" },
 ];
 
@@ -33,7 +38,7 @@ export default function Sidebar({ connected }: { connected: boolean }) {
               SYGIL
             </h1>
             <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-              v0.2.0
+              v0.3.0
             </p>
           </div>
         </div>
@@ -50,7 +55,7 @@ export default function Sidebar({ connected }: { connected: boolean }) {
             to={to}
             end={to === "/"}
             className={({ isActive }) =>
-              `flex items-center gap-2.5 px-3 py-2 text-[13px] rounded-lg transition-all duration-150 ${
+              `flex items-center gap-2.5 px-3 py-1.5 text-[13px] rounded-lg transition-all duration-150 ${
                 isActive ? "font-medium" : ""
               }`
             }
@@ -59,7 +64,7 @@ export default function Sidebar({ connected }: { connected: boolean }) {
               background: isActive ? "rgba(0, 200, 255, 0.06)" : undefined,
             })}
           >
-            <Icon size={15} />
+            <Icon size={14} />
             {label}
           </NavLink>
         ))}

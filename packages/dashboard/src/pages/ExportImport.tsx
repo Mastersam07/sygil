@@ -1,8 +1,19 @@
-import { useState } from "react";
-import { Download, FileJson, FileSpreadsheet } from "lucide-react";
+import { useState, useRef } from "react";
+import { Download, Upload, FileJson, FileSpreadsheet, CheckCircle } from "lucide-react";
+
+interface ImportPreview {
+  preview: boolean;
+  totalInFile: number;
+  alreadyExists: number;
+  willImport: number;
+  newSessionIds: string[];
+}
 
 export default function ExportImport() {
   const [exporting, setExporting] = useState<string | null>(null);
+  const [importPreview, setImportPreview] = useState<ImportPreview | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const handleExport = async (format: "json" | "csv") => {
     setExporting(format);
@@ -15,15 +26,40 @@ export default function ExportImport() {
       a.download = format === "csv" ? "sygil-export.csv" : "sygil-export.json";
       a.click();
       URL.revokeObjectURL(url);
-    } catch {
-      /* ignore */
-    }
+    } catch { /* ignore */ }
     setExporting(null);
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportError(null);
+    setImportPreview(null);
+
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const res = await fetch("/api/import", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const result = await res.json();
+      if (result.error) {
+        setImportError(result.error);
+      } else {
+        setImportPreview(result);
+      }
+    } catch {
+      setImportError("Failed to parse file. Make sure it's a valid Sygil JSON export.");
+    }
+
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   return (
     <div className="page-enter space-y-5">
-      <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>Export</h2>
+      <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>Export & Import</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div className="card p-5">
@@ -36,11 +72,7 @@ export default function ExportImport() {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => handleExport("json")}
-            disabled={exporting === "json"}
-            className="btn w-full justify-center"
-          >
+          <button onClick={() => handleExport("json")} disabled={exporting === "json"} className="btn w-full justify-center">
             <Download size={14} />
             {exporting === "json" ? "Exporting..." : "Download JSON"}
           </button>
@@ -56,11 +88,7 @@ export default function ExportImport() {
               </p>
             </div>
           </div>
-          <button
-            onClick={() => handleExport("csv")}
-            disabled={exporting === "csv"}
-            className="btn w-full justify-center"
-          >
+          <button onClick={() => handleExport("csv")} disabled={exporting === "csv"} className="btn w-full justify-center">
             <Download size={14} />
             {exporting === "csv" ? "Exporting..." : "Download CSV"}
           </button>
@@ -68,8 +96,66 @@ export default function ExportImport() {
       </div>
 
       <div className="card p-5">
+        <div className="flex items-center gap-3 mb-3">
+          <Upload size={20} style={{ color: "var(--accent-purple)" }} />
+          <div>
+            <h3 className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>Import</h3>
+            <p className="text-[12px]" style={{ color: "var(--text-muted)" }}>
+              Upload a previously exported JSON snapshot to preview what would be imported.
+            </p>
+          </div>
+        </div>
+
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".json"
+          onChange={handleImportFile}
+          className="hidden"
+        />
+        <button onClick={() => fileRef.current?.click()} className="btn w-full justify-center md:w-auto">
+          <Upload size={14} />
+          Select JSON file
+        </button>
+
+        {importError && (
+          <div className="mt-3 p-3 rounded-lg text-[13px]" style={{ background: "rgba(239, 68, 68, 0.08)", color: "var(--accent-red)" }}>
+            {importError}
+          </div>
+        )}
+
+        {importPreview && (
+          <div className="mt-3 p-4 rounded-lg" style={{ background: "var(--bg-primary)" }}>
+            <div className="flex items-center gap-2 mb-3">
+              <CheckCircle size={14} style={{ color: "var(--accent-green)" }} />
+              <span className="text-[13px] font-medium" style={{ color: "var(--text-primary)" }}>Import Preview</span>
+            </div>
+            <div className="grid grid-cols-3 gap-3 text-[13px]">
+              <div>
+                <p style={{ color: "var(--text-muted)" }}>In file</p>
+                <p className="mono font-medium" style={{ color: "var(--text-primary)" }}>{importPreview.totalInFile} sessions</p>
+              </div>
+              <div>
+                <p style={{ color: "var(--text-muted)" }}>Already exists</p>
+                <p className="mono font-medium" style={{ color: "var(--text-secondary)" }}>{importPreview.alreadyExists}</p>
+              </div>
+              <div>
+                <p style={{ color: "var(--text-muted)" }}>New to import</p>
+                <p className="mono font-medium" style={{ color: "var(--accent-green)" }}>{importPreview.willImport}</p>
+              </div>
+            </div>
+            {importPreview.willImport === 0 && (
+              <p className="text-[12px] mt-2" style={{ color: "var(--text-muted)" }}>
+                All sessions in this file already exist locally. Nothing to import.
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="card p-4">
         <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-          Individual session markdown export is available from each session's detail page.
+          Session markdown export is available from each session's detail page.
         </p>
       </div>
     </div>
