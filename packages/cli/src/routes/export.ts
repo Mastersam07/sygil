@@ -82,4 +82,23 @@ export function registerExportRoutes(app: FastifyInstance, claudeDir: string) {
     reply.header("Content-Disposition", `attachment; filename=session-${req.params.id.slice(0, 8)}.md`);
     return lines.join("\n");
   });
+
+  app.post("/api/import", async (req) => {
+    const body = req.body as Record<string, unknown>;
+    if (!body || !body.version) {
+      return { error: "Invalid import format. Expected a Sygil JSON export." };
+    }
+    const sessions = (body.sessions || []) as Array<{ id: string }>;
+    const existingSessions = loadAllSessions(claudeDir);
+    const existingIds = new Set(existingSessions.map(s => s.id));
+    const newSessions = sessions.filter(s => !existingIds.has(s.id));
+
+    return {
+      preview: true,
+      totalInFile: sessions.length,
+      alreadyExists: sessions.length - newSessions.length,
+      willImport: newSessions.length,
+      newSessionIds: newSessions.map(s => s.id),
+    };
+  });
 }

@@ -10,6 +10,11 @@ import { registerHistoryRoutes } from "./routes/history.js";
 import { registerToolRoutes } from "./routes/tools.js";
 import { registerChangeRoutes } from "./routes/changes.js";
 import { registerExportRoutes } from "./routes/export.js";
+import { registerTodoRoutes } from "./routes/todos.js";
+import { registerMemoryRoutes } from "./routes/memory.js";
+import { registerDiagnosticRoutes } from "./routes/diagnostics.js";
+import { registerConfigRoutes } from "./routes/config.js";
+import { registerExtensionRoutes } from "./routes/extensions.js";
 import { registerSSE } from "./sse.js";
 import { startWatcher } from "./watcher.js";
 
@@ -35,6 +40,11 @@ export async function startServer({ port, claudeDir, open }: ServerOptions) {
   registerToolRoutes(app, claudeDir);
   registerChangeRoutes(app, claudeDir);
   registerExportRoutes(app, claudeDir);
+  registerTodoRoutes(app, claudeDir);
+  registerMemoryRoutes(app, claudeDir);
+  registerDiagnosticRoutes(app, claudeDir);
+  registerConfigRoutes(app, claudeDir);
+  registerExtensionRoutes(app, claudeDir);
   registerSSE(app);
 
   app.get("/api/health", async () => ({ status: "ok", claudeDir }));
