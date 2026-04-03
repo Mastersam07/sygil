@@ -93,6 +93,28 @@ export function getSessionFiles(projectDir: string): string[] {
   }
 }
 
+function aggregateSubagentTokens(projectDir: string, sessionId: string): { tokens: TokenUsage; cost: number } {
+  const tokens: TokenUsage = { input: 0, output: 0, cacheCreation: 0, cacheRead: 0 };
+  let cost = 0;
+  const subagentsDir = join(projectDir, sessionId, "subagents");
+  if (!existsSync(subagentsDir)) return { tokens, cost };
+  try {
+    const files = readdirSync(subagentsDir)
+      .filter((f: string) => f.endsWith(".jsonl"))
+      .map((f: string) => join(subagentsDir, f));
+    for (const file of files) {
+      const raw = parseJsonlFile<Record<string, unknown>>(file);
+      const result = parseRawMessages(raw);
+      tokens.input += result.tokens.input;
+      tokens.output += result.tokens.output;
+      tokens.cacheCreation += result.tokens.cacheCreation;
+      tokens.cacheRead += result.tokens.cacheRead;
+      cost += result.cost;
+    }
+  } catch { /* skip unreadable dirs */ }
+  return { tokens, cost };
+}
+
 function parseRawMessages(raw: Record<string, unknown>[]): { messages: SessionMessage[]; tokens: TokenUsage; cost: number; model: string; badges: string[] } {
   const messages: SessionMessage[] = [];
   const tokens: TokenUsage = { input: 0, output: 0, cacheCreation: 0, cacheRead: 0 };
@@ -211,7 +233,16 @@ export function loadAllSessions(claudeDir: string): SessionMeta[] {
       const raw = parseJsonlFile<Record<string, unknown>>(file);
       if (raw.length === 0) continue;
 
-      const { tokens, cost, model, badges } = parseRawMessages(raw);
+      const parsed = parseRawMessages(raw);
+      const sub = aggregateSubagentTokens(project.path, id);
+      const tokens: TokenUsage = {
+        input: parsed.tokens.input + sub.tokens.input,
+        output: parsed.tokens.output + sub.tokens.output,
+        cacheCreation: parsed.tokens.cacheCreation + sub.tokens.cacheCreation,
+        cacheRead: parsed.tokens.cacheRead + sub.tokens.cacheRead,
+      };
+      const cost = parsed.cost + sub.cost;
+      const { model, badges } = parsed;
       const totalTokens = tokens.input + tokens.output + tokens.cacheCreation + tokens.cacheRead;
       if (totalTokens === 0 && raw.length < 2) continue;
 

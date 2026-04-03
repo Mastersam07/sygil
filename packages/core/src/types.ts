@@ -70,6 +70,8 @@ export interface ModelBreakdown {
 export interface OverviewData {
   totalTokens: TokenUsage;
   estimatedCost: number;
+  costWithoutCache: number;
+  cacheSavings: number;
   sessionCount: number;
   projectCount: number;
   sessionsToday: number;
