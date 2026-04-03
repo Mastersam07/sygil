@@ -4,6 +4,7 @@ import type { SessionMeta, SessionMessage, SessionDetail, TokenUsage } from "../
 import { parseJsonlFile } from "./jsonl.js";
 import { calculateCost } from "../pricing.js";
 import { getProjectDirs } from "../detector.js";
+import { extractProjectName } from "../project-roots.js";
 
 interface RawIndexEntry {
   sessionId?: string;
@@ -17,15 +18,6 @@ interface RawIndexEntry {
   createdAt?: string;
   lastModified?: string;
   model?: string;
-}
-
-function extractProjectName(hash: string): string {
-  const parts = hash.replace(/^-+/, "").split("-");
-  const desktopIdx = parts.indexOf("Desktop");
-  if (desktopIdx >= 0 && desktopIdx < parts.length - 1) {
-    return parts.slice(desktopIdx + 1).join("-");
-  }
-  return parts.slice(-2).join("/") || hash.slice(0, 12);
 }
 
 const SKIP_TYPES = new Set(["queue-operation", "file-history-snapshot", "progress", "last-prompt", "attachment"]);

@@ -1,7 +1,8 @@
-import { readFileSync, existsSync, readdirSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
-import { getProjectDirs } from "../detector.js";
+import { resolveProjectRoots } from "../project-roots.js";
+import { readPlugins, scanDir } from "./extensions.js";
 
 interface McpServer {
   name: string;
@@ -23,7 +24,9 @@ interface ConfigResult {
   claudeJson: Record<string, unknown> | null;
   mcpServers: McpServer[];
   permissions: PermissionRule[];
-  projectConfigs: { project: string; claudeMd: string | null; settings: Record<string, unknown> | null }[];
+  installedSkills: { name: string; path: string; scope: string; description?: string }[];
+  installedPlugins: { id: string; scope: string; version: string; installedAt?: string }[];
+  projectConfigs: { project: string; projectPath: string | null; claudeMd: string | null; settings: Record<string, unknown> | null }[];
 }
 
 function readFileSafe(p: string): string | null {
@@ -38,6 +41,8 @@ export function loadConfig(claudeDir: string): ConfigResult {
   const globalClaudeMd = readFileSafe(join(claudeDir, "CLAUDE.md"));
   const globalSettings = readJsonSafe(join(claudeDir, "settings.json"));
   const claudeJson = readJsonSafe(join(homedir(), ".claude.json"));
+  const installedSkills = scanDir(join(claudeDir, "skills"), "global");
+  const installedPlugins = readPlugins(claudeDir);
 
   const mcpServers: McpServer[] = [];
 
@@ -93,14 +98,23 @@ export function loadConfig(claudeDir: string): ConfigResult {
 
   // Per-project configs
   const projectConfigs: ConfigResult["projectConfigs"] = [];
-  const projects = getProjectDirs(claudeDir);
+  const projects = resolveProjectRoots(claudeDir);
   for (const project of projects) {
-    const pClaudeMd = readFileSafe(join(project.path, "CLAUDE.md"));
-    const pSettings = readJsonSafe(join(project.path, "settings.json"));
+    const pClaudeMd = project.rootPath
+      ? readFileSafe(join(project.rootPath, ".claude", "CLAUDE.md")) || readFileSafe(join(project.rootPath, "CLAUDE.md"))
+      : null;
+    const pSettings = project.rootPath
+      ? readJsonSafe(join(project.rootPath, ".claude", "settings.json")) || readJsonSafe(join(project.rootPath, "settings.json"))
+      : null;
     if (pClaudeMd || pSettings) {
-      projectConfigs.push({ project: project.hash, claudeMd: pClaudeMd, settings: pSettings });
+      projectConfigs.push({
+        project: project.name,
+        projectPath: project.rootPath,
+        claudeMd: pClaudeMd,
+        settings: pSettings,
+      });
     }
   }
 
-  return { globalClaudeMd, globalSettings, claudeJson, mcpServers, permissions, projectConfigs };
+  return { globalClaudeMd, globalSettings, claudeJson, mcpServers, permissions, installedSkills, installedPlugins, projectConfigs };
 }

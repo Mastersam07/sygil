@@ -13,6 +13,8 @@ interface MemoryFile {
   content: string;
   modifiedAt: string;
   isStale: boolean;
+  staleReason?: "age" | "missing_session";
+  missingSessionId?: string;
   isIndex: boolean;
 }
 
@@ -50,10 +52,33 @@ function detectType(filename: string, meta: Record<string, string>): MemoryType 
   return "unknown";
 }
 
+function collectSessionIds(claudeDir: string): Set<string> {
+  const sessionIds = new Set<string>();
+
+  for (const project of getProjectDirs(claudeDir)) {
+    try {
+      const files = readdirSync(project.path).filter(file => file.endsWith(".jsonl") && !file.endsWith(".wakatime"));
+      for (const file of files) {
+        sessionIds.add(basename(file, ".jsonl"));
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return sessionIds;
+}
+
+function findMissingSessionReference(content: string, sessionIds: Set<string>): string | undefined {
+  const matches = content.match(/\b[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\b/gi) || [];
+  return matches.find(match => !sessionIds.has(match));
+}
+
 export function loadMemory(claudeDir: string): MemoryResult {
   const files: MemoryFile[] = [];
   const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
   const projects = getProjectDirs(claudeDir);
+  const sessionIds = collectSessionIds(claudeDir);
 
   for (const project of projects) {
     const memDir = join(project.path, "memory");
@@ -69,6 +94,8 @@ export function loadMemory(claudeDir: string): MemoryResult {
           const { meta, body } = parseFrontmatter(raw);
           const isIndex = file === "MEMORY.md";
           const type = detectType(file, meta);
+          const missingSessionId = findMissingSessionReference(raw, sessionIds);
+          const staleReason = missingSessionId ? "missing_session" : stat.mtime.getTime() < thirtyDaysAgo ? "age" : undefined;
 
           files.push({
             path: fullPath,
@@ -78,7 +105,9 @@ export function loadMemory(claudeDir: string): MemoryResult {
             description: meta.description || "",
             content: isIndex ? raw : body,
             modifiedAt: stat.mtime.toISOString(),
-            isStale: stat.mtime.getTime() < thirtyDaysAgo,
+            isStale: Boolean(staleReason),
+            staleReason,
+            missingSessionId,
             isIndex,
           });
         } catch { /* skip */ }
@@ -97,6 +126,8 @@ export function loadMemory(claudeDir: string): MemoryResult {
           const raw = readFileSync(fullPath, "utf-8");
           const stat = statSync(fullPath);
           const { meta, body } = parseFrontmatter(raw);
+          const missingSessionId = findMissingSessionReference(raw, sessionIds);
+          const staleReason = missingSessionId ? "missing_session" : stat.mtime.getTime() < thirtyDaysAgo ? "age" : undefined;
 
           files.push({
             path: fullPath,
@@ -106,7 +137,9 @@ export function loadMemory(claudeDir: string): MemoryResult {
             description: meta.description || "",
             content: file === "MEMORY.md" ? raw : body,
             modifiedAt: stat.mtime.toISOString(),
-            isStale: stat.mtime.getTime() < thirtyDaysAgo,
+            isStale: Boolean(staleReason),
+            staleReason,
+            missingSessionId,
             isIndex: file === "MEMORY.md",
           });
         } catch { /* skip */ }

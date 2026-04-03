@@ -1,12 +1,17 @@
 import { existsSync, readdirSync, readFileSync, statSync } from "fs";
 import { join, basename } from "path";
+import { resolveProjectRoots } from "../project-roots.js";
 
 interface TodoItem {
   content: string;
   status: "pending" | "in_progress" | "completed";
   activeForm?: string;
+  priority?: string;
   sessionId: string;
   fileName: string;
+  projectHash: string | null;
+  projectName: string;
+  projectRoot: string | null;
 }
 
 interface PlanFile {
@@ -22,9 +27,39 @@ interface TodosResult {
   plans: PlanFile[];
 }
 
+function normalizePriority(raw: unknown): string | undefined {
+  if (typeof raw !== "string") return undefined;
+  const priority = raw.trim().toLowerCase().replace(/\s+/g, "_");
+  if (!priority) return undefined;
+  if (priority === "urgent") return "high";
+  return priority;
+}
+
+function buildSessionProjectMap(claudeDir: string): Map<string, { hash: string; name: string; rootPath: string | null }> {
+  const map = new Map<string, { hash: string; name: string; rootPath: string | null }>();
+
+  for (const project of resolveProjectRoots(claudeDir)) {
+    try {
+      const files = readdirSync(project.storagePath).filter(file => file.endsWith(".jsonl") && !file.endsWith(".wakatime"));
+      for (const file of files) {
+        map.set(basename(file, ".jsonl"), {
+          hash: project.hash,
+          name: project.name,
+          rootPath: project.rootPath,
+        });
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return map;
+}
+
 export function loadTodos(claudeDir: string): TodosResult {
   const todosDir = join(claudeDir, "todos");
   const todos: TodoItem[] = [];
+  const sessionProjectMap = buildSessionProjectMap(claudeDir);
 
   if (existsSync(todosDir)) {
     try {
@@ -35,14 +70,19 @@ export function loadTodos(claudeDir: string): TodosResult {
           const items = JSON.parse(content);
           if (!Array.isArray(items)) continue;
           const sessionId = basename(file, ".json").split("-agent-")[0];
+          const project = sessionProjectMap.get(sessionId);
           for (const item of items) {
             if (!item.content) continue;
             todos.push({
               content: item.content,
               status: item.status || "pending",
               activeForm: item.activeForm,
+              priority: normalizePriority(item.priority || item.priorityLevel || item.metadata?.priority),
               sessionId,
               fileName: file,
+              projectHash: project?.hash || null,
+              projectName: project?.name || "Unknown Project",
+              projectRoot: project?.rootPath || null,
             });
           }
         } catch { /* skip malformed */ }

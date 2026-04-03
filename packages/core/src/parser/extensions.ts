@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
+import { resolveProjectRoots } from "../project-roots.js";
 
 interface ExtensionItem {
   name: string;
@@ -31,7 +32,7 @@ interface ExtensionsResult {
   mcpServers: McpServerItem[];
 }
 
-function scanDir(dir: string, scope: string): ExtensionItem[] {
+export function scanDir(dir: string, scope: string): ExtensionItem[] {
   if (!existsSync(dir)) return [];
   try {
     return readdirSync(dir, { withFileTypes: true })
@@ -60,7 +61,7 @@ function scanDir(dir: string, scope: string): ExtensionItem[] {
   } catch { return []; }
 }
 
-function readPlugins(claudeDir: string): PluginItem[] {
+export function readPlugins(claudeDir: string): PluginItem[] {
   const pluginsFile = join(claudeDir, "plugins", "installed_plugins.json");
   if (!existsSync(pluginsFile)) return [];
   try {
@@ -105,9 +106,19 @@ function readMcpServers(): McpServerItem[] {
 }
 
 export function loadExtensions(claudeDir: string): ExtensionsResult {
+  const commands = scanDir(join(claudeDir, "commands"), "global");
+  const skills = scanDir(join(claudeDir, "skills"), "global");
+
+  for (const project of resolveProjectRoots(claudeDir)) {
+    if (!project.rootPath) continue;
+    const scope = `project: ${project.name}`;
+    commands.push(...scanDir(join(project.rootPath, ".claude", "commands"), scope));
+    skills.push(...scanDir(join(project.rootPath, ".claude", "skills"), scope));
+  }
+
   return {
-    commands: scanDir(join(claudeDir, "commands"), "global"),
-    skills: scanDir(join(claudeDir, "skills"), "global"),
+    commands,
+    skills,
     plugins: readPlugins(claudeDir),
     mcpServers: readMcpServers(),
   };

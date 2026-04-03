@@ -3,6 +3,7 @@ import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
 import EmptyState from "../components/EmptyState";
 import { Settings, Shield, ShieldOff, Server, ChevronDown, ChevronRight } from "lucide-react";
+import MarkdownBlock from "../components/MarkdownBlock";
 
 interface McpServer {
   name: string;
@@ -19,7 +20,9 @@ interface ConfigData {
   claudeJson: Record<string, unknown> | null;
   mcpServers: McpServer[];
   permissions: { type: "allow" | "deny"; rule: string }[];
-  projectConfigs: { project: string; claudeMd: string | null; settings: Record<string, unknown> | null }[];
+  installedSkills: { name: string; path: string; scope: string; description?: string }[];
+  installedPlugins: { id: string; scope: string; version: string; installedAt?: string }[];
+  projectConfigs: { project: string; projectPath: string | null; claudeMd: string | null; settings: Record<string, unknown> | null }[];
 }
 
 function JsonBlock({ data }: { data: unknown }) {
@@ -44,9 +47,9 @@ export default function ConfigViewer() {
         {data.globalClaudeMd && (
           <div className="card p-5">
             <p className="section-label">CLAUDE.md</p>
-            <pre className="text-[12px] whitespace-pre-wrap leading-relaxed max-h-80 overflow-y-auto" style={{ color: "var(--text-secondary)" }}>
-              {data.globalClaudeMd}
-            </pre>
+            <div className="max-h-80 overflow-y-auto">
+              <MarkdownBlock content={data.globalClaudeMd} />
+            </div>
           </div>
         )}
 
@@ -116,6 +119,42 @@ export default function ConfigViewer() {
         </div>
       )}
 
+      {(data.installedSkills.length > 0 || data.installedPlugins.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+          <div className="card p-5">
+            <p className="section-label">Installed Skills</p>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {data.installedSkills.map(skill => (
+                <div key={skill.path}>
+                  <p className="text-[13px] mono" style={{ color: "var(--text-primary)" }}>{skill.name}</p>
+                  <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>{skill.description || skill.path}</p>
+                </div>
+              ))}
+              {data.installedSkills.length === 0 && (
+                <p className="text-[12px]" style={{ color: "var(--text-muted)" }}>No skills found.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="card p-5">
+            <p className="section-label">Installed Plugins</p>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {data.installedPlugins.map(plugin => (
+                <div key={`${plugin.id}-${plugin.scope}`}>
+                  <p className="text-[13px] mono" style={{ color: "var(--text-primary)" }}>{plugin.id}</p>
+                  <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                    {plugin.version} · {plugin.scope}
+                  </p>
+                </div>
+              ))}
+              {data.installedPlugins.length === 0 && (
+                <p className="text-[12px]" style={{ color: "var(--text-muted)" }}>No plugins found.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {data.projectConfigs.length > 0 && (
         <div className="space-y-2">
           <p className="section-label">Per-Project Configs</p>
@@ -126,14 +165,21 @@ export default function ConfigViewer() {
                 className="w-full flex items-center gap-2 p-3 text-left"
               >
                 {expandedProject === pc.project ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-                <span className="text-[13px] mono" style={{ color: "var(--text-primary)" }}>{pc.project}</span>
+                <div className="min-w-0">
+                  <span className="text-[13px] mono block" style={{ color: "var(--text-primary)" }}>{pc.project}</span>
+                  {pc.projectPath && (
+                    <span className="text-[10px] block truncate" style={{ color: "var(--text-muted)" }}>{pc.projectPath}</span>
+                  )}
+                </div>
               </button>
               {expandedProject === pc.project && (
                 <div className="px-4 pb-4 space-y-3 border-t" style={{ borderColor: "var(--border)" }}>
                   {pc.claudeMd && (
                     <div className="mt-3">
                       <p className="text-[11px] font-medium mb-1" style={{ color: "var(--text-muted)" }}>CLAUDE.md</p>
-                      <pre className="text-[11px] whitespace-pre-wrap max-h-40 overflow-y-auto" style={{ color: "var(--text-secondary)" }}>{pc.claudeMd}</pre>
+                      <div className="max-h-40 overflow-y-auto">
+                        <MarkdownBlock content={pc.claudeMd} />
+                      </div>
                     </div>
                   )}
                   {pc.settings && (
@@ -149,7 +195,7 @@ export default function ConfigViewer() {
         </div>
       )}
 
-      {!data.globalClaudeMd && !data.globalSettings && data.mcpServers.length === 0 && data.permissions.length === 0 && (
+      {!data.globalClaudeMd && !data.globalSettings && data.mcpServers.length === 0 && data.permissions.length === 0 && data.installedSkills.length === 0 && data.installedPlugins.length === 0 && (
         <EmptyState title="No configuration found" message="Your Claude Code configuration files will appear here." icon={<Settings size={28} />} />
       )}
     </div>

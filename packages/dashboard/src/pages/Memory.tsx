@@ -5,6 +5,7 @@ import StatCard from "../components/StatCard";
 import EmptyState from "../components/EmptyState";
 import { fmtDate } from "../lib/format";
 import { Brain, Search, AlertTriangle } from "lucide-react";
+import MarkdownBlock from "../components/MarkdownBlock";
 
 interface MemoryFile {
   path: string;
@@ -15,6 +16,8 @@ interface MemoryFile {
   content: string;
   modifiedAt: string;
   isStale: boolean;
+  staleReason?: "age" | "missing_session";
+  missingSessionId?: string;
   isIndex: boolean;
 }
 
@@ -114,9 +117,14 @@ export default function Memory() {
               </div>
               {expanded === f.path && (
                 <div className="px-4 pb-4 border-t" style={{ borderColor: "var(--border)" }}>
-                  <pre className="text-[12px] mt-3 whitespace-pre-wrap leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                    {f.content}
-                  </pre>
+                  {f.isStale && (
+                    <p className="text-[11px] mt-3" style={{ color: "var(--accent-amber)" }}>
+                      {f.staleReason === "missing_session" && f.missingSessionId
+                        ? `References missing session ${f.missingSessionId.slice(0, 8)}`
+                        : "Has not been updated recently"}
+                    </p>
+                  )}
+                  <MarkdownBlock content={f.content} className="mt-3 text-[12px]" />
                 </div>
               )}
             </div>

@@ -29,7 +29,7 @@ export function registerExportRoutes(app: FastifyInstance, claudeDir: string) {
 
     const payload = {
       exportedAt: new Date().toISOString(),
-      version: "0.2.0",
+      version: "0.3.0",
       sessions,
       analytics,
       tools,

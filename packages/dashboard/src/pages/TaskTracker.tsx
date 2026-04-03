@@ -6,13 +6,18 @@ import EmptyState from "../components/EmptyState";
 import { fmtDate } from "../lib/format";
 import { Link } from "react-router-dom";
 import { CheckSquare, Circle, Loader, CheckCircle, FileText } from "lucide-react";
+import MarkdownBlock from "../components/MarkdownBlock";
 
 interface TodoItem {
   content: string;
   status: "pending" | "in_progress" | "completed";
   activeForm?: string;
+  priority?: string;
   sessionId: string;
   fileName: string;
+  projectHash: string | null;
+  projectName: string;
+  projectRoot: string | null;
 }
 
 interface PlanFile {
@@ -34,9 +39,20 @@ const STATUS_COLOR: Record<string, string> = {
   completed: "var(--accent-green)",
 };
 
+const PRIORITY_COLOR: Record<string, string> = {
+  high: "var(--accent-red)",
+  medium: "var(--accent-amber)",
+  low: "var(--accent-cyan)",
+};
+
 export default function TaskTracker() {
   const [filter, setFilter] = useState<string>("all");
-  const { data: todoData, isLoading: todosLoading } = useApi<{ todos: TodoItem[]; stats: { total: number; completed: number; pending: number; inProgress: number; completionRate: number } }>("/todos");
+  const [projectFilter, setProjectFilter] = useState<string>("all");
+  const todoParams = new URLSearchParams();
+  if (filter !== "all") todoParams.set("status", filter);
+  if (projectFilter !== "all") todoParams.set("project", projectFilter);
+
+  const { data: todoData, isLoading: todosLoading } = useApi<{ todos: TodoItem[]; stats: { total: number; completed: number; pending: number; inProgress: number; completionRate: number } }>(`/todos?${todoParams}`);
   const { data: planData, isLoading: plansLoading } = useApi<{ plans: PlanFile[] }>("/plans");
 
   if ((todosLoading && !todoData) || (plansLoading && !planData)) return <PageSkeleton />;
@@ -44,7 +60,17 @@ export default function TaskTracker() {
   const todos = todoData?.todos || [];
   const stats = todoData?.stats || { total: 0, completed: 0, pending: 0, inProgress: 0, completionRate: 0 };
   const plans = planData?.plans || [];
-  const filtered = filter === "all" ? todos : todos.filter(t => t.status === filter);
+  const groupedTodos = new Map<string, TodoItem[]>();
+  const projectOptions = Array.from(new Set(todos.map(todo => `${todo.projectHash || ""}::${todo.projectName}`)));
+
+  for (const todo of todos) {
+    const key = `${todo.projectHash || "unknown"}::${todo.projectName}`;
+    const current = groupedTodos.get(key) || [];
+    current.push(todo);
+    groupedTodos.set(key, current);
+  }
+
+  const groupedEntries = Array.from(groupedTodos.entries()).sort(([a], [b]) => a.localeCompare(b));
 
   return (
     <div className="page-enter space-y-5">
@@ -72,26 +98,62 @@ export default function TaskTracker() {
             ))}
           </div>
 
-          {filtered.length === 0 ? (
+          <div className="mb-3">
+            <select
+              value={projectFilter}
+              onChange={e => setProjectFilter(e.target.value)}
+              className="input px-3 py-2 text-[13px] min-w-56"
+            >
+              <option value="all">All projects</option>
+              {projectOptions.map(option => {
+                const [hash, name] = option.split("::");
+                return <option key={option} value={hash || name}>{name}</option>;
+              })}
+            </select>
+          </div>
+
+          {todos.length === 0 ? (
             <EmptyState title="No tasks" message="Claude's todo items will appear here." icon={<CheckSquare size={28} />} />
           ) : (
-            <div className="space-y-1">
-              {filtered.map((t, i) => (
-                <div key={`${t.fileName}-${i}`} className="card p-3 flex items-start gap-3">
-                  <div className="mt-0.5">{STATUS_ICON[t.status]}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[13px]" style={{ color: STATUS_COLOR[t.status], textDecoration: t.status === "completed" ? "line-through" : "none" }}>
-                      {t.content}
-                    </p>
-                    {t.activeForm && (
-                      <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>{t.activeForm}</p>
-                    )}
+            <div className="space-y-3">
+              {groupedEntries.map(([groupKey, items]) => {
+                const [, projectName] = groupKey.split("::");
+                return (
+                  <div key={groupKey} className="card p-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-[13px] font-medium" style={{ color: "var(--text-primary)" }}>{projectName}</p>
+                      <span className="text-[11px] mono" style={{ color: "var(--text-muted)" }}>{items.length} tasks</span>
+                    </div>
+                    <div className="space-y-1">
+                      {items.map((t, i) => (
+                        <div key={`${t.fileName}-${i}`} className="rounded-lg px-3 py-2" style={{ background: "var(--bg-primary)" }}>
+                          <div className="flex items-start gap-3">
+                            <div className="mt-0.5">{STATUS_ICON[t.status]}</div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap mb-1">
+                                <p className="text-[13px]" style={{ color: STATUS_COLOR[t.status], textDecoration: t.status === "completed" ? "line-through" : "none" }}>
+                                  {t.content}
+                                </p>
+                                {t.priority && (
+                                  <span className="badge" style={{ color: PRIORITY_COLOR[t.priority] || "var(--text-muted)" }}>
+                                    {t.priority}
+                                  </span>
+                                )}
+                              </div>
+                              {t.activeForm && (
+                                <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>{t.activeForm}</p>
+                              )}
+                            </div>
+                            <Link to={`/sessions/${t.sessionId}`} className="text-[10px] shrink-0" style={{ color: "var(--accent-cyan)" }}>
+                              session →
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <Link to={`/sessions/${t.sessionId}`} className="text-[10px] shrink-0" style={{ color: "var(--accent-cyan)" }}>
-                    session →
-                  </Link>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -111,9 +173,12 @@ export default function TaskTracker() {
                   <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>
                     Modified: {fmtDate(p.modifiedAt)}
                   </p>
-                  <pre className="text-[11px] mt-2 whitespace-pre-wrap max-h-48 overflow-y-auto" style={{ color: "var(--text-secondary)" }}>
-                    {p.content.slice(0, 1000)}{p.content.length > 1000 ? "\n..." : ""}
-                  </pre>
+                  <div className="mt-2 max-h-48 overflow-y-auto">
+                    <MarkdownBlock content={p.content.slice(0, 1000)} />
+                    {p.content.length > 1000 && (
+                      <p className="text-[11px] mt-2" style={{ color: "var(--text-muted)" }}>...</p>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
