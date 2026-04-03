@@ -13,43 +13,61 @@ const NAV = [
 export default function Sidebar() {
   return (
     <aside
-      className="w-56 flex flex-col border-r shrink-0"
+      className="w-52 flex flex-col shrink-0 border-r"
       style={{ background: "var(--bg-secondary)", borderColor: "var(--border)" }}
     >
-      <div className="p-4 border-b" style={{ borderColor: "var(--border)" }}>
-        <h1 className="text-lg font-bold mono" style={{ color: "var(--accent-cyan)" }}>
-          ⬡ SYGIL
-        </h1>
-        <p className="text-xs mt-1" style={{ color: "var(--text-muted)" }}>
-          Your System for Claude Code
-        </p>
+      <div className="px-5 pt-5 pb-4">
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-xs font-bold mono"
+            style={{ background: "rgba(0, 200, 255, 0.1)", color: "var(--accent-cyan)" }}
+          >
+            S
+          </div>
+          <div>
+            <h1 className="text-sm font-bold tracking-wide" style={{ color: "var(--text-primary)" }}>
+              SYGIL
+            </h1>
+            <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+              v0.1.0
+            </p>
+          </div>
+        </div>
       </div>
 
-      <nav className="flex-1 py-2">
+      <div className="px-3 mb-2">
+        <div className="h-px" style={{ background: "var(--border)" }} />
+      </div>
+
+      <nav className="flex-1 px-2 space-y-0.5">
         {NAV.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             end={to === "/"}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${isActive ? "border-r-2" : "hover:bg-white/5"}`
+              `flex items-center gap-2.5 px-3 py-2 text-[13px] rounded-lg transition-all duration-150 ${
+                isActive ? "font-medium" : ""
+              }`
             }
             style={({ isActive }) => ({
               color: isActive ? "var(--accent-cyan)" : "var(--text-secondary)",
-              borderColor: isActive ? "var(--accent-cyan)" : "transparent",
-              background: isActive ? "rgba(0, 212, 255, 0.05)" : undefined,
+              background: isActive ? "rgba(0, 200, 255, 0.06)" : undefined,
             })}
           >
-            <Icon size={16} />
+            <Icon size={15} />
             {label}
           </NavLink>
         ))}
       </nav>
 
-      <div className="p-4 border-t text-xs" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
-        <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          Live
+      <div className="px-4 py-3 border-t" style={{ borderColor: "var(--border)" }}>
+        <div className="flex items-center gap-2 text-[11px]" style={{ color: "var(--text-muted)" }}>
+          <span
+            className="w-1.5 h-1.5 rounded-full animate-pulse"
+            style={{ background: "var(--accent-green)" }}
+          />
+          Watching ~/.claude
         </div>
       </div>
     </aside>

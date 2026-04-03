@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
+import EmptyState from "../components/EmptyState";
 import { fmtTokens, fmtCost, timeAgo } from "../lib/format";
 import { Link } from "react-router-dom";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, MessageSquare } from "lucide-react";
 
 interface Session {
   id: string;
@@ -40,26 +41,27 @@ export default function Sessions() {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-xl font-bold" style={{ color: "var(--accent-cyan)" }}>Sessions</h2>
+    <div className="page-enter space-y-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>Sessions</h2>
+        <span className="text-xs mono" style={{ color: "var(--text-muted)" }}>{total} total</span>
+      </div>
 
-      <div className="flex gap-3 items-center">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex gap-2 items-center">
+        <div className="relative flex-1 max-w-sm">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
           <input
             type="text"
             placeholder="Search sessions..."
             value={query}
             onChange={e => { setQuery(e.target.value); setPage(1); }}
-            className="w-full pl-9 pr-3 py-2 rounded-lg border text-sm outline-none"
-            style={{ background: "var(--bg-card)", borderColor: "var(--border)", color: "var(--text-primary)" }}
+            className="input w-full pl-9 pr-3 py-2 text-[13px]"
           />
         </div>
         <select
           value={sort}
           onChange={e => setSort(e.target.value)}
-          className="px-3 py-2 rounded-lg border text-sm outline-none"
-          style={{ background: "var(--bg-card)", borderColor: "var(--border)", color: "var(--text-primary)" }}
+          className="input px-3 py-2 text-[13px]"
         >
           <option value="date">Date</option>
           <option value="tokens">Tokens</option>
@@ -68,65 +70,67 @@ export default function Sessions() {
         </select>
       </div>
 
-      <div className="rounded-lg border overflow-hidden" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
-        <table className="w-full text-sm">
-          <thead>
-            <tr style={{ borderBottom: "1px solid var(--border)" }}>
-              <th className="text-left px-4 py-3 font-medium" style={{ color: "var(--text-muted)" }}>Session</th>
-              <th className="text-left px-4 py-3 font-medium" style={{ color: "var(--text-muted)" }}>Project</th>
-              <th className="text-right px-4 py-3 font-medium" style={{ color: "var(--text-muted)" }}>Tokens</th>
-              <th className="text-right px-4 py-3 font-medium" style={{ color: "var(--text-muted)" }}>Cost</th>
-              <th className="text-right px-4 py-3 font-medium" style={{ color: "var(--text-muted)" }}>When</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sessions.map(s => (
-              <tr
-                key={s.id}
-                className="hover:bg-white/5 transition-colors cursor-pointer"
-                style={{ borderBottom: "1px solid var(--border)" }}
-              >
-                <td className="px-4 py-3">
-                  <Link to={`/sessions/${s.id}`} className="block">
-                    <span style={{ color: "var(--text-primary)" }}>{s.title}</span>
-                    {s.badges.length > 0 && (
-                      <span className="ml-2 text-xs">
-                        {s.badges.map(b => BADGE_MAP[b] || b).join(" ")}
-                      </span>
-                    )}
-                    {s.branch && (
-                      <span className="ml-2 text-xs px-1.5 py-0.5 rounded" style={{ background: "var(--bg-hover)", color: "var(--text-muted)" }}>
-                        {s.branch}
-                      </span>
-                    )}
-                  </Link>
-                </td>
-                <td className="px-4 py-3 text-xs" style={{ color: "var(--text-secondary)" }}>{s.project}</td>
-                <td className="px-4 py-3 text-right mono text-xs" style={{ color: "var(--accent-cyan)" }}>
-                  {fmtTokens(s.tokens.input + s.tokens.output)}
-                </td>
-                <td className="px-4 py-3 text-right mono text-xs" style={{ color: "var(--accent-green)" }}>
-                  {fmtCost(s.cost)}
-                </td>
-                <td className="px-4 py-3 text-right text-xs" style={{ color: "var(--text-muted)" }}>
-                  {timeAgo(s.startedAt)}
-                </td>
+      {sessions.length === 0 ? (
+        <EmptyState
+          title={query ? "No sessions match" : "No sessions found"}
+          message={query ? "Try a different search term." : "Start using Claude Code to see sessions here."}
+          icon={<MessageSquare size={28} />}
+        />
+      ) : (
+        <div className="card overflow-hidden">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Session</th>
+                <th>Project</th>
+                <th className="text-right">Tokens</th>
+                <th className="text-right">Cost</th>
+                <th className="text-right">When</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {sessions.map(s => (
+                <tr key={s.id} className="cursor-pointer">
+                  <td>
+                    <Link to={`/sessions/${s.id}`} className="block">
+                      <span className="text-[13px]" style={{ color: "var(--text-primary)" }}>{s.title}</span>
+                      {s.badges.length > 0 && (
+                        <span className="ml-2 text-[11px]">
+                          {s.badges.map(b => BADGE_MAP[b] || b).join(" ")}
+                        </span>
+                      )}
+                      {s.branch && (
+                        <span className="badge ml-2">{s.branch}</span>
+                      )}
+                    </Link>
+                  </td>
+                  <td className="text-xs" style={{ color: "var(--text-muted)" }}>{s.project}</td>
+                  <td className="text-right mono text-xs" style={{ color: "var(--accent-cyan)" }}>
+                    {fmtTokens(s.tokens.input + s.tokens.output)}
+                  </td>
+                  <td className="text-right mono text-xs" style={{ color: "var(--accent-green)" }}>
+                    {fmtCost(s.cost)}
+                  </td>
+                  <td className="text-right text-xs" style={{ color: "var(--text-muted)" }}>
+                    {timeAgo(s.startedAt)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between text-sm" style={{ color: "var(--text-muted)" }}>
+        <div className="flex items-center justify-between text-xs" style={{ color: "var(--text-muted)" }}>
           <span>{total} sessions</span>
-          <div className="flex items-center gap-2">
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="p-1 rounded hover:bg-white/10 disabled:opacity-30">
-              <ChevronLeft size={16} />
+          <div className="flex items-center gap-1">
+            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className="btn p-1.5">
+              <ChevronLeft size={14} />
             </button>
-            <span>{page} / {totalPages}</span>
-            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="p-1 rounded hover:bg-white/10 disabled:opacity-30">
-              <ChevronRight size={16} />
+            <span className="px-2 mono">{page} / {totalPages}</span>
+            <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className="btn p-1.5">
+              <ChevronRight size={14} />
             </button>
           </div>
         </div>

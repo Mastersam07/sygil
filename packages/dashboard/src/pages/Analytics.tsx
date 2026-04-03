@@ -1,9 +1,11 @@
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
 import StatCard from "../components/StatCard";
+import { TOOLTIP_STYLE, AXIS_STYLE } from "../components/ChartTooltip";
 import { fmtTokens, fmtCost } from "../lib/format";
 import { CHART_COLORS, TOKEN_COLORS } from "../lib/colors";
 import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
+import { TrendingUp, Target, Database, Clock } from "lucide-react";
 
 interface Analytics {
   timeSeries: { date: string; input: number; output: number; cacheCreation: number; cacheRead: number; cost: number }[];
@@ -13,59 +15,72 @@ interface Analytics {
   projection: { monthlyEstimate: number; dailyAverage: number };
 }
 
-const PIE_COLORS = [CHART_COLORS.cyan, CHART_COLORS.green, CHART_COLORS.amber];
+const PIE_COLORS = [CHART_COLORS.cyan, CHART_COLORS.green, CHART_COLORS.amber, CHART_COLORS.purple];
 
 export default function Analytics() {
   const { data, isLoading } = useApi<Analytics>("/analytics/tokens");
   if (isLoading || !data) return <PageSkeleton />;
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-bold" style={{ color: "var(--accent-cyan)" }}>Token Analytics</h2>
+    <div className="page-enter space-y-5">
+      <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>Token Analytics</h2>
 
-      <div className="grid grid-cols-4 gap-4">
-        <StatCard label="Daily Average" value={fmtCost(data.projection.dailyAverage)} />
-        <StatCard label="Monthly Projection" value={fmtCost(data.projection.monthlyEstimate)} color="var(--accent-amber)" />
-        <StatCard label="Cache Hit Ratio" value={`${data.cacheEfficiency.hitRatio.toFixed(1)}%`} color="var(--accent-green)" />
-        <StatCard label="Cache Tokens" value={fmtTokens(data.cacheEfficiency.creationTokens + data.cacheEfficiency.readTokens)} sub={`${fmtTokens(data.cacheEfficiency.readTokens)} reads`} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <StatCard label="Daily Average" value={fmtCost(data.projection.dailyAverage)} icon={<TrendingUp size={14} />} />
+        <StatCard label="Monthly Projection" value={fmtCost(data.projection.monthlyEstimate)} color="var(--accent-amber)" icon={<Target size={14} />} />
+        <StatCard label="Cache Hit Ratio" value={`${data.cacheEfficiency.hitRatio.toFixed(1)}%`} color="var(--accent-green)" icon={<Database size={14} />} />
+        <StatCard
+          label="Cache Tokens"
+          value={fmtTokens(data.cacheEfficiency.creationTokens + data.cacheEfficiency.readTokens)}
+          sub={`${fmtTokens(data.cacheEfficiency.readTokens)} reads`}
+          icon={<Clock size={14} />}
+        />
       </div>
 
-      <div className="rounded-lg border p-4" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
-        <h3 className="text-sm font-medium mb-4" style={{ color: "var(--text-secondary)" }}>Usage Over Time</h3>
+      <div className="card p-5">
+        <p className="section-label">Usage Over Time</p>
         <ResponsiveContainer width="100%" height={280}>
           <AreaChart data={data.timeSeries}>
-            <XAxis dataKey="date" tick={{ fill: "#555568", fontSize: 11 }} tickFormatter={d => d.slice(5)} />
-            <YAxis tick={{ fill: "#555568", fontSize: 11 }} tickFormatter={fmtTokens} />
-            <Tooltip contentStyle={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 8, fontSize: 12 }} />
-            <Legend />
-            <Area type="monotone" dataKey="input" stackId="1" stroke={TOKEN_COLORS.input} fill={TOKEN_COLORS.input} fillOpacity={0.3} name="Input" />
-            <Area type="monotone" dataKey="output" stackId="1" stroke={TOKEN_COLORS.output} fill={TOKEN_COLORS.output} fillOpacity={0.3} name="Output" />
+            <XAxis dataKey="date" {...AXIS_STYLE} tickFormatter={d => d.slice(5)} />
+            <YAxis {...AXIS_STYLE} tickFormatter={fmtTokens} />
+            <Tooltip {...TOOLTIP_STYLE} />
+            <Legend
+              iconType="circle"
+              iconSize={8}
+              formatter={(value: string) => <span style={{ color: "var(--text-secondary)", fontSize: 11 }}>{value}</span>}
+            />
+            <Area type="monotone" dataKey="input" stackId="1" stroke={TOKEN_COLORS.input} fill={TOKEN_COLORS.input} fillOpacity={0.15} name="Input" strokeWidth={1.5} />
+            <Area type="monotone" dataKey="output" stackId="1" stroke={TOKEN_COLORS.output} fill={TOKEN_COLORS.output} fillOpacity={0.15} name="Output" strokeWidth={1.5} />
           </AreaChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-lg border p-4" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
-          <h3 className="text-sm font-medium mb-4" style={{ color: "var(--text-secondary)" }}>Model Breakdown</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="card p-5">
+          <p className="section-label">Model Breakdown</p>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie data={data.modelBreakdown} dataKey="tokens" nameKey="model" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={2}>
                 {data.modelBreakdown.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
               </Pie>
-              <Tooltip contentStyle={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 8, fontSize: 12 }} formatter={(v: number) => fmtTokens(v)} />
-              <Legend formatter={(value) => <span style={{ color: "var(--text-secondary)", fontSize: 12 }}>{value}</span>} />
+              <Tooltip {...TOOLTIP_STYLE} formatter={(v: number) => fmtTokens(v)} />
+              <Legend
+                iconType="circle"
+                iconSize={8}
+                formatter={(value: string) => <span style={{ color: "var(--text-secondary)", fontSize: 11 }}>{value}</span>}
+              />
             </PieChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-lg border p-4" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
-          <h3 className="text-sm font-medium mb-4" style={{ color: "var(--text-secondary)" }}>Peak Hours</h3>
+        <div className="card p-5">
+          <p className="section-label">Peak Hours</p>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={data.peakHours}>
-              <XAxis dataKey="hour" tick={{ fill: "#555568", fontSize: 10 }} tickFormatter={h => `${h}:00`} />
-              <YAxis tick={{ fill: "#555568", fontSize: 10 }} tickFormatter={fmtTokens} />
-              <Tooltip contentStyle={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 8, fontSize: 12 }} />
-              <Bar dataKey="avgTokens" fill={CHART_COLORS.cyan} radius={[2, 2, 0, 0]} />
+              <XAxis dataKey="hour" {...AXIS_STYLE} tickFormatter={h => `${h}:00`} />
+              <YAxis {...AXIS_STYLE} tickFormatter={fmtTokens} />
+              <Tooltip {...TOOLTIP_STYLE} />
+              <Bar dataKey="avgTokens" fill={CHART_COLORS.cyan} radius={[3, 3, 0, 0]} opacity={0.8} />
             </BarChart>
           </ResponsiveContainer>
         </div>

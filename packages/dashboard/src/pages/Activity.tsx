@@ -1,9 +1,11 @@
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
 import StatCard from "../components/StatCard";
+import { TOOLTIP_STYLE, AXIS_STYLE } from "../components/ChartTooltip";
 import { fmtTokens } from "../lib/format";
 import { CHART_COLORS } from "../lib/colors";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Flame, Trophy, CalendarDays } from "lucide-react";
 
 interface ActivityData {
   heatmap: { date: string; count: number; tokens: number }[];
@@ -31,20 +33,20 @@ function HeatmapGrid({ data }: { data: { date: string; count: number }[] }) {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <svg width={cells.reduce((max, c) => Math.max(max, c.col), 0) * 14 + 30} height={7 * 14 + 10} className="block">
+    <div className="overflow-x-auto pb-1">
+      <svg width={cells.reduce((max, c) => Math.max(max, c.col), 0) * 13 + 20} height={7 * 13 + 6} className="block">
         {cells.map((cell, i) => {
           const intensity = cell.count > 0 ? Math.min(cell.count / maxCount, 1) : 0;
           const fill = intensity === 0
             ? "var(--bg-hover)"
-            : `rgba(0, 212, 255, ${0.15 + intensity * 0.75})`;
+            : `rgba(0, 200, 255, ${0.12 + intensity * 0.7})`;
           return (
             <rect
               key={i}
-              x={cell.col * 14}
-              y={cell.row * 14}
-              width={11}
-              height={11}
+              x={cell.col * 13}
+              y={cell.row * 13}
+              width={10}
+              height={10}
               rx={2}
               fill={fill}
             >
@@ -62,44 +64,44 @@ export default function Activity() {
   if (isLoading || !data) return <PageSkeleton />;
 
   const dowData = data.dayOfWeek.map(d => ({ ...d, name: DAY_LABELS[d.day] }));
-  const hourData = data.hourOfDay;
+  const activeDays = data.heatmap.filter(d => d.count > 0).length;
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-bold" style={{ color: "var(--accent-cyan)" }}>Activity</h2>
+    <div className="page-enter space-y-5">
+      <h2 className="text-lg font-semibold" style={{ color: "var(--text-primary)" }}>Activity</h2>
 
-      <div className="grid grid-cols-3 gap-4">
-        <StatCard label="Current Streak" value={`${data.currentStreak} days`} color="var(--accent-amber)" />
-        <StatCard label="Longest Streak" value={`${data.longestStreak} days`} color="var(--accent-green)" />
-        <StatCard label="Active Days" value={data.heatmap.filter(d => d.count > 0).length.toString()} sub="in the last year" />
+      <div className="grid grid-cols-3 gap-3">
+        <StatCard label="Current Streak" value={`${data.currentStreak} days`} color="var(--accent-amber)" icon={<Flame size={14} />} />
+        <StatCard label="Longest Streak" value={`${data.longestStreak} days`} color="var(--accent-green)" icon={<Trophy size={14} />} />
+        <StatCard label="Active Days" value={activeDays.toString()} sub="in the last year" icon={<CalendarDays size={14} />} />
       </div>
 
-      <div className="rounded-lg border p-4" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
-        <h3 className="text-sm font-medium mb-4" style={{ color: "var(--text-secondary)" }}>Contribution Heatmap</h3>
+      <div className="card p-5">
+        <p className="section-label">Contribution Heatmap</p>
         <HeatmapGrid data={data.heatmap} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-lg border p-4" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
-          <h3 className="text-sm font-medium mb-4" style={{ color: "var(--text-secondary)" }}>Day of Week</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="card p-5">
+          <p className="section-label">Day of Week</p>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={dowData}>
-              <XAxis dataKey="name" tick={{ fill: "#555568", fontSize: 11 }} />
-              <YAxis tick={{ fill: "#555568", fontSize: 11 }} />
-              <Tooltip contentStyle={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 8, fontSize: 12 }} />
-              <Bar dataKey="avgSessions" fill={CHART_COLORS.cyan} radius={[3, 3, 0, 0]} name="Avg Sessions" />
+              <XAxis dataKey="name" {...AXIS_STYLE} />
+              <YAxis {...AXIS_STYLE} />
+              <Tooltip {...TOOLTIP_STYLE} />
+              <Bar dataKey="avgSessions" fill={CHART_COLORS.cyan} radius={[3, 3, 0, 0]} opacity={0.8} name="Avg Sessions" />
             </BarChart>
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-lg border p-4" style={{ background: "var(--bg-card)", borderColor: "var(--border)" }}>
-          <h3 className="text-sm font-medium mb-4" style={{ color: "var(--text-secondary)" }}>Peak Hours</h3>
+        <div className="card p-5">
+          <p className="section-label">Peak Hours</p>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={hourData}>
-              <XAxis dataKey="hour" tick={{ fill: "#555568", fontSize: 10 }} tickFormatter={h => `${h}h`} />
-              <YAxis tick={{ fill: "#555568", fontSize: 10 }} />
-              <Tooltip contentStyle={{ background: "#16161f", border: "1px solid #2a2a3a", borderRadius: 8, fontSize: 12 }} />
-              <Bar dataKey="avgTokens" fill={CHART_COLORS.green} radius={[3, 3, 0, 0]} name="Avg Tokens" />
+            <BarChart data={data.hourOfDay}>
+              <XAxis dataKey="hour" {...AXIS_STYLE} tickFormatter={h => `${h}h`} />
+              <YAxis {...AXIS_STYLE} tickFormatter={fmtTokens} />
+              <Tooltip {...TOOLTIP_STYLE} />
+              <Bar dataKey="avgTokens" fill={CHART_COLORS.green} radius={[3, 3, 0, 0]} opacity={0.8} name="Avg Tokens" />
             </BarChart>
           </ResponsiveContainer>
         </div>
