@@ -10,30 +10,33 @@ interface Props {
 
 export default function StatCard({ label, value, sub, color = "var(--accent-cyan)", icon }: Props) {
   return (
-    <div className="card p-5">
-      <div className="flex items-start justify-between gap-3 mb-4">
-        <div>
+    <div className="card p-6">
+      <div className="flex items-start justify-between gap-4 mb-5">
+        <div className="min-w-0 flex-1">
           <p className="text-[10px] uppercase tracking-[0.18em] font-bold" style={{ color: "var(--text-muted)" }}>
             System Metric
           </p>
-          <p className="text-[12px] mt-1 font-medium" style={{ color: "var(--text-secondary)" }}>
+          <p className="text-[12px] mt-2 font-medium leading-5" style={{ color: "var(--text-secondary)" }}>
             {label}
           </p>
         </div>
         {icon && (
           <span
-            className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0"
+            className="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0"
             style={{ background: "rgba(255, 255, 255, 0.04)", color }}
           >
             {icon}
           </span>
         )}
       </div>
-      <p className="text-[30px] font-bold mono tracking-[-0.05em] leading-none mt-1" style={{ color }}>
+      <p
+        className="text-[clamp(1.72rem,2.35vw,2.05rem)] font-bold mono tracking-[-0.035em] leading-[1.16] wrap-break-word"
+        style={{ color }}
+      >
         {value}
       </p>
       {sub && (
-        <p className="text-[12px] mt-3 leading-relaxed" style={{ color: "var(--text-soft)" }}>
+        <p className="text-[12px] mt-4 leading-6 wrap-break-word" style={{ color: "var(--text-soft)" }}>
           {sub}
         </p>
       )}

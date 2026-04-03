@@ -13,12 +13,12 @@ export default function DiffViewer({ lines, maxLines = 200 }: Props) {
   const visible = lines.slice(0, maxLines);
 
   return (
-    <div className="overflow-x-auto text-[12px] mono leading-5">
+    <div className="overflow-x-auto text-[12px] mono leading-6 rounded-b-[18px]" style={{ background: "rgba(5, 14, 24, 0.76)" }}>
       {visible.map((line, i) => {
         const bg =
           line.type === "add" ? "rgba(52, 211, 153, 0.08)"
           : line.type === "remove" ? "rgba(239, 68, 68, 0.08)"
-          : "transparent";
+          : "rgba(255, 255, 255, 0.01)";
         const marker =
           line.type === "add" ? "+"
           : line.type === "remove" ? "−"
@@ -33,22 +33,22 @@ export default function DiffViewer({ lines, maxLines = 200 }: Props) {
         return (
           <div
             key={i}
-            className="flex"
-            style={{ background: bg }}
+            className="grid grid-cols-[64px_28px_minmax(0,1fr)]"
+            style={{ background: bg, borderBottom: "1px solid rgba(132, 162, 202, 0.05)" }}
           >
             <span
-              className="w-10 shrink-0 text-right pr-2 select-none"
-              style={{ color: "var(--text-muted)" }}
+              className="shrink-0 text-right pr-3 py-1.5 select-none border-r"
+              style={{ color: "var(--text-muted)", borderColor: "rgba(132, 162, 202, 0.08)" }}
             >
               {line.lineNumber}
             </span>
             <span
-              className="w-4 shrink-0 text-center select-none"
+              className="shrink-0 text-center py-1.5 select-none"
               style={{ color: markerColor }}
             >
               {marker}
             </span>
-            <span className="flex-1 whitespace-pre wrap-break-word" style={{ color: textColor }}>
+            <span className="flex-1 whitespace-pre wrap-break-word py-1.5 pr-4" style={{ color: textColor }}>
               {line.content}
             </span>
           </div>
