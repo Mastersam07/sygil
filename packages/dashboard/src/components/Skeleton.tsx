@@ -1,22 +1,23 @@
 export default function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-lg ${className}`}
-      style={{ background: "var(--bg-hover)" }}
+      className={`animate-pulse rounded-[18px] ${className}`}
+      style={{ background: "linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04))" }}
     />
   );
 }
 
 export function PageSkeleton() {
   return (
-    <div className="page-enter space-y-5">
-      <Skeleton className="h-7 w-40" />
+    <div className="page-enter space-y-6">
+      <Skeleton className="h-3.5 w-28" />
+      <Skeleton className="h-12 w-[28rem] max-w-full" />
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-22" />)}
+        {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-40" />)}
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <Skeleton className="lg:col-span-2 h-70" />
-        <Skeleton className="h-70" />
+      <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_0.95fr] gap-4">
+        <Skeleton className="h-80" />
+        <Skeleton className="h-80" />
       </div>
     </div>
   );
