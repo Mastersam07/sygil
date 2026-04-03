@@ -34,16 +34,16 @@ export default function Overview() {
 
   return (
     <div className="page-enter space-y-6">
-      <section className="card p-7 lg:p-9">
-        <div className="grid gap-7 lg:grid-cols-[1.35fr_0.95fr] items-start">
+      <section className="card p-6 lg:p-8">
+        <div className="grid gap-6 lg:grid-cols-[1.35fr_0.95fr] items-start">
           <div>
             <p className="eyebrow">Command Center</p>
-            <h2 className="page-hero-title mt-4">Your Claude workspace, expressed as a real operating console.</h2>
+            <h2 className="page-hero-title mt-3">Your Claude workspace, expressed as a real operating console.</h2>
             <p className="page-hero-copy">
               Watch token velocity, cost efficiency, project concentration, and current session momentum from a single system view.
             </p>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-7">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-6">
               <StatCard
                 label="Total Tokens"
                 value={fmtTokens(totalTok)}
@@ -60,42 +60,42 @@ export default function Overview() {
             </div>
           </div>
 
-          <div className="space-y-4">
-            <div className="surface-muted p-6">
+          <div className="space-y-3">
+            <div className="surface-muted p-5">
               <p className="eyebrow">Today</p>
-              <div className="mt-5 flex items-end justify-between gap-4">
+              <div className="mt-4 flex items-end justify-between gap-4">
                 <div>
-                  <p className="text-[34px] font-bold tracking-[-0.05em] leading-[1.12] mono" style={{ color: "var(--text-primary)" }}>
+                  <p className="text-[34px] font-bold tracking-[-0.06em] mono" style={{ color: "var(--text-primary)" }}>
                     {data.sessionsToday}
                   </p>
-                  <p className="text-[13px] mt-2" style={{ color: "var(--text-secondary)" }}>sessions started today</p>
+                  <p className="text-[13px]" style={{ color: "var(--text-secondary)" }}>sessions started today</p>
                 </div>
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ background: "rgba(88, 214, 255, 0.12)", color: "var(--accent-cyan)" }}>
                   <Activity size={18} />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4 mt-6 text-[12px]">
+              <div className="grid grid-cols-2 gap-3 mt-5 text-[12px]">
                 <div>
                   <p style={{ color: "var(--text-muted)" }}>This week</p>
-                  <p className="mt-2 font-semibold mono" style={{ color: "var(--text-primary)" }}>{data.sessionsThisWeek}</p>
+                  <p className="mt-1 font-semibold mono" style={{ color: "var(--text-primary)" }}>{data.sessionsThisWeek}</p>
                 </div>
                 <div>
                   <p style={{ color: "var(--text-muted)" }}>This month</p>
-                  <p className="mt-2 font-semibold mono" style={{ color: "var(--text-primary)" }}>{data.sessionsThisMonth}</p>
+                  <p className="mt-1 font-semibold mono" style={{ color: "var(--text-primary)" }}>{data.sessionsThisMonth}</p>
                 </div>
               </div>
             </div>
 
-            <div className="surface-muted p-6">
+            <div className="surface-muted p-5">
               <p className="eyebrow">Efficiency</p>
-              <p className="text-[28px] mt-4 font-bold tracking-[-0.04em] leading-[1.15] mono" style={{ color: "var(--accent-green)" }}>
+              <p className="text-[28px] mt-3 font-bold tracking-[-0.05em] mono" style={{ color: "var(--accent-green)" }}>
                 {fmtCost(data.cacheSavings)}
               </p>
-              <p className="text-[13px] mt-3 leading-7" style={{ color: "var(--text-secondary)" }}>
+              <p className="text-[13px] mt-2 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
                 Cache behavior is preventing roughly {cachePercent}% of equivalent cost across the observed workspace.
               </p>
               {data.mostActiveProject && (
-                <div className="mt-5 badge">
+                <div className="mt-4 badge">
                   <Sparkles size={11} />
                   Most active project: {data.mostActiveProject}
                 </div>
@@ -105,7 +105,7 @@ export default function Overview() {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
         <StatCard
           label="Sessions"
           value={data.sessionCount.toLocaleString()}
@@ -135,8 +135,8 @@ export default function Overview() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.45fr_0.95fr] gap-4">
-        <div className="card p-7">
-          <div className="flex items-start justify-between gap-4 mb-6">
+        <div className="card p-6">
+          <div className="flex items-start justify-between gap-4 mb-5">
             <div>
               <p className="section-label">Usage Trajectory</p>
               <h3 className="text-xl font-semibold tracking-[-0.04em]" style={{ color: "var(--text-primary)" }}>
@@ -163,11 +163,11 @@ export default function Overview() {
           </ResponsiveContainer>
         </div>
 
-        <div className="card p-7 flex flex-col">
-          <div className="flex items-start justify-between gap-4 mb-5">
+        <div className="card p-6 flex flex-col">
+          <div className="flex items-start justify-between gap-4 mb-4">
             <div>
               <p className="section-label mb-0">Recent Sessions</p>
-              <p className="text-[14px] mt-3 leading-6" style={{ color: "var(--text-secondary)" }}>
+              <p className="text-[14px] mt-2" style={{ color: "var(--text-secondary)" }}>
                 The latest conversations worth reviewing.
               </p>
             </div>
@@ -175,19 +175,19 @@ export default function Overview() {
               View all <ArrowRight size={12} />
             </Link>
           </div>
-          <div className="flex-1 space-y-3 overflow-y-auto">
+          <div className="flex-1 space-y-2 overflow-y-auto">
             {data.recentSessions.slice(0, 8).map(s => (
               <Link
                 key={s.id}
                 to={`/sessions/${s.id}`}
-                className="surface-muted block px-5 py-4 transition-colors"
+                className="surface-muted block px-4 py-3 transition-colors"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-[14px] font-medium truncate leading-6" style={{ color: "var(--text-primary)" }}>
+                    <p className="text-[14px] font-medium truncate" style={{ color: "var(--text-primary)" }}>
                       {s.title}
                     </p>
-                    <p className="text-[12px] mt-2" style={{ color: "var(--text-muted)" }}>
+                    <p className="text-[12px] mt-1" style={{ color: "var(--text-muted)" }}>
                       {s.project} · {timeAgo(s.startedAt)}
                     </p>
                   </div>

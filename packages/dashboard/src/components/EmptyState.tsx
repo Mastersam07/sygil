@@ -1,10 +1,9 @@
-import type { ReactNode } from "react";
 import { Inbox } from "lucide-react";
 
 interface Props {
   title: string;
   message: string;
-  icon?: ReactNode;
+  icon?: React.ReactNode;
 }
 
 export default function EmptyState({ title, message, icon }: Props) {
