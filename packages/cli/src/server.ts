@@ -7,6 +7,11 @@ import { registerAnalyticsRoutes } from "./routes/analytics.js";
 import { registerProjectRoutes } from "./routes/projects.js";
 import { registerActivityRoutes } from "./routes/activity.js";
 import { registerHistoryRoutes } from "./routes/history.js";
+import { registerToolRoutes } from "./routes/tools.js";
+import { registerChangeRoutes } from "./routes/changes.js";
+import { registerExportRoutes } from "./routes/export.js";
+import { registerSSE } from "./sse.js";
+import { startWatcher } from "./watcher.js";
 
 interface ServerOptions {
   port: number;
@@ -27,8 +32,14 @@ export async function startServer({ port, claudeDir, open }: ServerOptions) {
   registerProjectRoutes(app, claudeDir);
   registerActivityRoutes(app, claudeDir);
   registerHistoryRoutes(app, claudeDir);
+  registerToolRoutes(app, claudeDir);
+  registerChangeRoutes(app, claudeDir);
+  registerExportRoutes(app, claudeDir);
+  registerSSE(app);
 
   app.get("/api/health", async () => ({ status: "ok", claudeDir }));
+
+  startWatcher(claudeDir);
 
   try {
     const { default: fastifyStatic } = await import("@fastify/static");

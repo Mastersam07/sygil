@@ -1,16 +1,20 @@
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, MessageSquare, BarChart3, FolderOpen, Flame, Clock } from "lucide-react";
+import { LayoutDashboard, MessageSquare, BarChart3, FolderOpen, Flame, Clock, Wrench, GitBranch, FileEdit, Download } from "lucide-react";
 
 const NAV = [
   { to: "/", icon: LayoutDashboard, label: "Overview" },
   { to: "/sessions", icon: MessageSquare, label: "Sessions" },
   { to: "/analytics", icon: BarChart3, label: "Analytics" },
+  { to: "/tools", icon: Wrench, label: "Tools" },
   { to: "/projects", icon: FolderOpen, label: "Projects" },
+  { to: "/git", icon: GitBranch, label: "Git" },
+  { to: "/changes", icon: FileEdit, label: "Changes" },
   { to: "/activity", icon: Flame, label: "Activity" },
   { to: "/history", icon: Clock, label: "History" },
+  { to: "/export", icon: Download, label: "Export" },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ connected }: { connected: boolean }) {
   return (
     <aside
       className="w-52 flex flex-col shrink-0 border-r"
@@ -29,7 +33,7 @@ export default function Sidebar() {
               SYGIL
             </h1>
             <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-              v0.1.0
+              v0.2.0
             </p>
           </div>
         </div>
@@ -39,7 +43,7 @@ export default function Sidebar() {
         <div className="h-px" style={{ background: "var(--border)" }} />
       </div>
 
-      <nav className="flex-1 px-2 space-y-0.5">
+      <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto">
         {NAV.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
@@ -64,10 +68,13 @@ export default function Sidebar() {
       <div className="px-4 py-3 border-t" style={{ borderColor: "var(--border)" }}>
         <div className="flex items-center gap-2 text-[11px]" style={{ color: "var(--text-muted)" }}>
           <span
-            className="w-1.5 h-1.5 rounded-full animate-pulse"
-            style={{ background: "var(--accent-green)" }}
+            className="w-1.5 h-1.5 rounded-full"
+            style={{
+              background: connected ? "var(--accent-green)" : "var(--accent-red)",
+              animation: connected ? "pulse 2s infinite" : "none",
+            }}
           />
-          Watching ~/.claude
+          {connected ? "Live" : "Connecting..."}
         </div>
       </div>
     </aside>
