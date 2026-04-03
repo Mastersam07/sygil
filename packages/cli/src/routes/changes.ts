@@ -1,5 +1,5 @@
 import type { FastifyInstance } from "fastify";
-import { loadFileChanges } from "@sygil/core";
+import { loadFileChanges, getSessionDiffs, resolveFileHash } from "@sygil/core";
 
 export function registerChangeRoutes(app: FastifyInstance, claudeDir: string) {
   app.get<{ Querystring: { project?: string; ext?: string; page?: string; limit?: string } }>("/api/changes", async (req) => {
@@ -22,5 +22,15 @@ export function registerChangeRoutes(app: FastifyInstance, claudeDir: string) {
       totalLinesRemoved: result.totalLinesRemoved,
       totalFiles: result.totalFiles,
     };
+  });
+
+  app.get<{ Params: { sessionId: string } }>("/api/changes/:sessionId/diffs", async (req) => {
+    const diffs = getSessionDiffs(claudeDir, req.params.sessionId);
+    const hashMap = resolveFileHash(claudeDir, req.params.sessionId);
+
+    return diffs.map(d => ({
+      ...d,
+      filePath: hashMap.get(d.fileHash) || d.fileHash,
+    }));
   });
 }

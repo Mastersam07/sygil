@@ -3,6 +3,167 @@ import { join, basename, extname } from "path";
 import { parseJsonlFile } from "./jsonl.js";
 import { getProjectDirs } from "../detector.js";
 
+export interface DiffLine {
+  type: "add" | "remove" | "context";
+  lineNumber: number;
+  content: string;
+}
+
+export interface FileDiff {
+  fileHash: string;
+  filePath: string;
+  sessionId: string;
+  versionBefore: number;
+  versionAfter: number;
+  lines: DiffLine[];
+  additions: number;
+  deletions: number;
+}
+
+function computeSimpleDiff(before: string, after: string): { lines: DiffLine[]; additions: number; deletions: number } {
+  const oldLines = before.split("\n");
+  const newLines = after.split("\n");
+  const result: DiffLine[] = [];
+  let additions = 0;
+  let deletions = 0;
+
+  const maxLen = Math.max(oldLines.length, newLines.length);
+  let oi = 0;
+  let ni = 0;
+
+  while (oi < oldLines.length || ni < newLines.length) {
+    if (oi < oldLines.length && ni < newLines.length && oldLines[oi] === newLines[ni]) {
+      result.push({ type: "context", lineNumber: ni + 1, content: newLines[ni] });
+      oi++;
+      ni++;
+    } else {
+      let found = false;
+      for (let look = 1; look < 6 && !found; look++) {
+        if (ni + look < newLines.length && oi < oldLines.length && oldLines[oi] === newLines[ni + look]) {
+          for (let j = 0; j < look; j++) {
+            result.push({ type: "add", lineNumber: ni + j + 1, content: newLines[ni + j] });
+            additions++;
+          }
+          ni += look;
+          found = true;
+        }
+        if (oi + look < oldLines.length && ni < newLines.length && oldLines[oi + look] === newLines[ni]) {
+          for (let j = 0; j < look; j++) {
+            result.push({ type: "remove", lineNumber: oi + j + 1, content: oldLines[oi + j] });
+            deletions++;
+          }
+          oi += look;
+          found = true;
+        }
+      }
+      if (!found) {
+        if (oi < oldLines.length) {
+          result.push({ type: "remove", lineNumber: oi + 1, content: oldLines[oi] });
+          deletions++;
+          oi++;
+        }
+        if (ni < newLines.length) {
+          result.push({ type: "add", lineNumber: ni + 1, content: newLines[ni] });
+          additions++;
+          ni++;
+        }
+      }
+    }
+
+    if (result.length > maxLen + 500) break;
+  }
+
+  return { lines: result, additions, deletions };
+}
+
+export function getFileVersions(claudeDir: string, sessionId: string, fileHash: string): FileDiff | null {
+  const dir = join(claudeDir, "file-history", sessionId);
+  if (!existsSync(dir)) return null;
+
+  try {
+    const files = readdirSync(dir)
+      .filter(f => f.startsWith(fileHash + "@v"))
+      .sort((a, b) => {
+        const va = parseInt(a.split("@v")[1]);
+        const vb = parseInt(b.split("@v")[1]);
+        return va - vb;
+      });
+
+    if (files.length < 2) return null;
+
+    const beforeFile = files[files.length - 2];
+    const afterFile = files[files.length - 1];
+    const before = readFileSync(join(dir, beforeFile), "utf-8");
+    const after = readFileSync(join(dir, afterFile), "utf-8");
+
+    const vBefore = parseInt(beforeFile.split("@v")[1]);
+    const vAfter = parseInt(afterFile.split("@v")[1]);
+
+    const { lines, additions, deletions } = computeSimpleDiff(before, after);
+
+    return {
+      fileHash,
+      filePath: fileHash,
+      sessionId,
+      versionBefore: vBefore,
+      versionAfter: vAfter,
+      lines,
+      additions,
+      deletions,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function getSessionDiffs(claudeDir: string, sessionId: string): FileDiff[] {
+  const dir = join(claudeDir, "file-history", sessionId);
+  if (!existsSync(dir)) return [];
+
+  try {
+    const allFiles = readdirSync(dir).filter(f => !f.startsWith("."));
+    const hashes = [...new Set(allFiles.map(f => f.split("@v")[0]))];
+
+    const diffs: FileDiff[] = [];
+    for (const hash of hashes) {
+      const diff = getFileVersions(claudeDir, sessionId, hash);
+      if (diff) diffs.push(diff);
+    }
+    return diffs;
+  } catch {
+    return [];
+  }
+}
+
+export function resolveFileHash(claudeDir: string, sessionId: string): Map<string, string> {
+  const mapping = new Map<string, string>();
+  const projects = getProjectDirs(claudeDir);
+
+  for (const project of projects) {
+    const sessionFile = join(project.path, `${sessionId}.jsonl`);
+    if (!existsSync(sessionFile)) continue;
+
+    const raw = parseJsonlFile<Record<string, unknown>>(sessionFile);
+    for (const entry of raw) {
+      if (entry.type !== "file-history-snapshot") continue;
+      const snap = entry.snapshot as Record<string, unknown> | undefined;
+      if (!snap) continue;
+      const backups = snap.trackedFileBackups as Record<string, Record<string, unknown>> | undefined;
+      if (!backups) continue;
+      for (const [path, info] of Object.entries(backups)) {
+        const backupName = info?.backupFileName as string | undefined;
+        if (backupName) {
+          const hash = backupName.split("@v")[0];
+          mapping.set(hash, path);
+        }
+      }
+    }
+    break;
+  }
+
+  return mapping;
+}
+
 interface FileChange {
   filePath: string;
   sessionId: string;
