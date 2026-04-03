@@ -3,8 +3,9 @@ import { fetchApi } from "../lib/api";
 
 export function useApi<T>(path: string | null) {
   const { data, error, isLoading, mutate } = useSWR(path, fetchApi<T>, {
-    refreshInterval: 5000,
     revalidateOnFocus: false,
+    keepPreviousData: true,
+    dedupingInterval: 3000,
   });
   return { data, error, isLoading, mutate };
 }
