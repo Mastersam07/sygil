@@ -3,6 +3,7 @@ import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
 import StatCard from "../components/StatCard";
 import EmptyState from "../components/EmptyState";
+import MarkdownBlock from "../components/MarkdownBlock";
 import { fmtDate } from "../lib/format";
 import { Brain, Search, AlertTriangle } from "lucide-react";
 
@@ -49,14 +50,29 @@ export default function Memory() {
             <div key={f.path} className="card cursor-pointer" onClick={() => setExpanded(expanded === f.path ? null : f.path)}>
               <div className="p-3 flex items-center gap-2">
                 <span className="badge">{f.type}</span>
-                <span className="text-[13px] font-bold flex-1 truncate" style={{ color: "var(--text)" }}>{f.name}</span>
+                <span className="text-[13px] font-bold flex-1 truncate" style={{ color: "var(--text-primary)" }}>{f.name}</span>
                 <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>{f.projectSlug.split("-").pop()}</span>
                 <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>{fmtDate(f.modifiedAt)}</span>
                 {f.isStale && <AlertTriangle size={11} style={{ color: "var(--accent-amber)" }} />}
               </div>
               {expanded === f.path && (
                 <div className="px-3 pb-3 border-t" style={{ borderColor: "var(--border)" }}>
-                  <pre className="text-[12px] mt-2 whitespace-pre-wrap" style={{ color: "var(--text-secondary)" }}>{f.content}</pre>
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    {f.isIndex && <span className="badge">index</span>}
+                    {f.isStale && (
+                      <span className="badge" style={{ color: "var(--accent-amber)" }}>
+                        {f.staleReason === "missing_session" ? `references missing session${f.missingSessionId ? ` ${f.missingSessionId.slice(0, 8)}` : ""}` : "older than 30 days"}
+                      </span>
+                    )}
+                  </div>
+                  {f.description && (
+                    <p className="text-[12px] mt-3 leading-6" style={{ color: "var(--text-muted)" }}>
+                      {f.description}
+                    </p>
+                  )}
+                  <div className="mt-3">
+                    <MarkdownBlock content={f.content} />
+                  </div>
                 </div>
               )}
             </div>
