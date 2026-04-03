@@ -2,13 +2,11 @@ export const TOOLTIP_STYLE = {
   contentStyle: {
     background: "var(--bg-card)",
     border: "1px solid var(--border)",
-    borderRadius: 8,
+    borderRadius: 4,
     fontSize: 12,
-    padding: "8px 12px",
-    boxShadow: "0 8px 24px rgba(0, 0, 0, 0.4)",
+    padding: "6px 10px",
   },
-  labelStyle: { color: "var(--text-muted)", fontSize: 11, marginBottom: 4 },
-  cursor: { stroke: "var(--border-hover)" },
+  labelStyle: { color: "var(--text-muted)", fontSize: 11 },
 };
 
 export const AXIS_STYLE = {
