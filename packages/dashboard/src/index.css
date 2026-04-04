@@ -35,7 +35,7 @@
   --radius-sm: 4px;
 
   /* Accents */
-  --accent: #d97706;
+  --accent: #7c3aed;
   --accent-green: #34d399;
   --accent-blue: #60a5fa;
   --accent-purple: #a78bfa;
@@ -43,7 +43,7 @@
   --accent-red: #f87171;
 
   /* Charts */
-  --chart-1: #d97706;
+  --chart-1: #7c3aed;
   --chart-2: #34d399;
   --chart-3: #60a5fa;
   --chart-4: #a78bfa;
@@ -66,14 +66,14 @@ html.light {
   --border: #e5e7eb;
   --border-hover: #d1d5db;
 
-  --accent: #ea580c;
+  --accent: #7c3aed;
   --accent-green: #059669;
   --accent-blue: #3b82f6;
   --accent-purple: #8b5cf6;
   --accent-amber: #d97706;
   --accent-red: #ef4444;
 
-  --chart-1: #d97706;
+  --chart-1: #7c3aed;
   --chart-2: #059669;
   --chart-3: #3b82f6;
   --chart-4: #8b5cf6;
