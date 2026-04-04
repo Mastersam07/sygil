@@ -57,7 +57,7 @@ export default function SessionDetail() {
   const { metadata: m, messages, totalCost, tokenTimeline } = data;
 
   return (
-    <div className="page-enter space-y-4">
+    <div className="page-enter space-y-8">
       <div className="flex items-center justify-between">
         <Link to="/sessions" className="text-[13px] flex items-center gap-1" style={{ color: "var(--text-muted)" }}><ArrowLeft size={14} /> sessions</Link>
         <a href={`/api/export/session/${m.id}/markdown`} className="btn text-[11px]">export md</a>
@@ -73,16 +73,16 @@ export default function SessionDetail() {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 gap-3">
-        <div className="card p-3"><p className="text-[11px]" style={{ color: "var(--text-muted)" }}>messages</p><p className="text-lg font-bold">{messages.length}</p></div>
-        <div className="card p-3"><p className="text-[11px]" style={{ color: "var(--text-muted)" }}>input</p><p className="text-lg font-bold" style={{ color: "var(--accent-blue)" }}>{fmtTokens(data.totalTokens.input)}</p></div>
-        <div className="card p-3"><p className="text-[11px]" style={{ color: "var(--text-muted)" }}>output</p><p className="text-lg font-bold" style={{ color: "var(--accent-green)" }}>{fmtTokens(data.totalTokens.output)}</p></div>
-        <div className="card p-3"><p className="text-[11px]" style={{ color: "var(--text-muted)" }}>cost</p><p className="text-lg font-bold" style={{ color: "var(--accent-green)" }}>{fmtCost(totalCost)}</p></div>
+      <div className="grid grid-cols-4 gap-6">
+        <div className="card p-4"><p className="text-[11px]" style={{ color: "var(--text-muted)" }}>messages</p><p className="text-lg font-bold">{messages.length}</p></div>
+        <div className="card p-4"><p className="text-[11px]" style={{ color: "var(--text-muted)" }}>input</p><p className="text-lg font-bold" style={{ color: "var(--accent-blue)" }}>{fmtTokens(data.totalTokens.input)}</p></div>
+        <div className="card p-4"><p className="text-[11px]" style={{ color: "var(--text-muted)" }}>output</p><p className="text-lg font-bold" style={{ color: "var(--accent-green)" }}>{fmtTokens(data.totalTokens.output)}</p></div>
+        <div className="card p-4"><p className="text-[11px]" style={{ color: "var(--text-muted)" }}>cost</p><p className="text-lg font-bold" style={{ color: "var(--accent-green)" }}>{fmtCost(totalCost)}</p></div>
       </div>
 
       {tokenTimeline.length > 2 && (
-        <div className="card p-4">
-          <p className="section-label">token timeline</p>
+        <div className="card p-6">
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Token Timeline</h2>
           <ResponsiveContainer width="100%" height={100}>
             <AreaChart data={tokenTimeline}>
               <XAxis dataKey="messageIndex" {...AXIS_STYLE} />
@@ -94,8 +94,8 @@ export default function SessionDetail() {
         </div>
       )}
 
-      <div className="card p-4">
-        <p className="section-label">conversation</p>
+      <div className="card p-6">
+        <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Conversation</h2>
         <div className="space-y-0.5">{messages.map((msg, i) => <MessageBubble key={i} msg={msg} />)}</div>
       </div>
     </div>

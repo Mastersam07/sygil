@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
+import PageHeader from "../components/PageHeader";
 import EmptyState from "../components/EmptyState";
 import { fmtDate, fmtTime } from "../lib/format";
 import { Link } from "react-router-dom";
@@ -22,7 +23,8 @@ export default function History() {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="page-enter space-y-4">
+    <div className="page-enter space-y-8">
+      <PageHeader pageName="History" />
       <div className="flex gap-2 items-center">
         <div className="relative flex-1 max-w-sm">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
@@ -38,7 +40,7 @@ export default function History() {
       ) : (
         <div className="space-y-1">
           {entries.map((e, i) => (
-            <div key={`${e.sessionId}-${i}`} className="card p-3">
+            <div key={`${e.sessionId}-${i}`} className="card p-4">
               <p className="text-[13px]" style={{ color: "var(--text)" }}>{e.prompt.length > 200 ? e.prompt.slice(0, 200) + "..." : e.prompt}</p>
               <div className="flex items-center gap-3 mt-1.5 text-[11px]" style={{ color: "var(--text-muted)" }}>
                 <span>{fmtDate(e.timestamp)} {fmtTime(e.timestamp)}</span>

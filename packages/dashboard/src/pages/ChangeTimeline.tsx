@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
 import StatCard from "../components/StatCard";
+import PageHeader from "../components/PageHeader";
 import EmptyState from "../components/EmptyState";
 import DiffViewer from "../components/DiffViewer";
 import { fmtDate } from "../lib/format";
@@ -46,25 +47,31 @@ export default function ChangeTimeline() {
   const { data, isLoading } = useApi<ChangesData>("/changes?limit=100");
   const [expandedSession, setExpandedSession] = useState<string | null>(null);
   if (isLoading || !data) return <PageSkeleton />;
-  if (data.total === 0) return <EmptyState title="No changes" message="File changes will appear as Claude edits files." icon={<FileEdit size={24} />} />;
+  if (data.total === 0) return (
+    <div className="page-enter space-y-8">
+      <PageHeader pageName="Changes" />
+      <EmptyState title="No changes" message="File changes will appear as Claude edits files." icon={<FileEdit size={24} />} />
+    </div>
+  );
 
   const sessionGroups = new Map<string, typeof data.changes>();
   for (const c of data.changes) { if (!c.sessionId) continue; const g = sessionGroups.get(c.sessionId) || []; g.push(c); sessionGroups.set(c.sessionId, g); }
 
   return (
-    <div className="page-enter space-y-4">
-      <div className="grid grid-cols-4 gap-3">
+    <div className="page-enter space-y-8">
+      <PageHeader pageName="Changes" />
+      <div className="grid grid-cols-4 gap-6">
         <StatCard label="Files Modified" value={data.totalFiles.toString()} />
         <StatCard label="Total Changes" value={data.total.toString()} />
         <StatCard label="Lines Added" value={`+${data.totalLinesAdded.toLocaleString()}`} color="var(--accent-green)" />
         <StatCard label="Lines Removed" value={`-${data.totalLinesRemoved.toLocaleString()}`} color="var(--accent-red)" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
         <div className="space-y-2">
-          <p className="section-label">sessions with changes</p>
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Sessions with Changes</h2>
           {Array.from(sessionGroups.entries()).slice(0, 20).map(([sid, changes]) => (
-            <div key={sid} className="card p-3">
+            <div key={sid} className="card p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FileEdit size={12} style={{ color: "var(--accent-amber)" }} />
@@ -84,8 +91,8 @@ export default function ChangeTimeline() {
           ))}
         </div>
 
-        <div className="card p-4 self-start">
-          <p className="section-label">most touched</p>
+        <div className="card p-6 self-start">
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Most Touched</h2>
           <div className="space-y-1.5">
             {data.mostTouched.map((f, i) => (
               <div key={f.filePath} className="flex items-center gap-2 text-[11px]">

@@ -1,6 +1,7 @@
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
 import StatCard from "../components/StatCard";
+import PageHeader from "../components/PageHeader";
 import { TOOLTIP_STYLE, AXIS_STYLE } from "../components/ChartTooltip";
 import { CHART_COLORS } from "../lib/colors";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -15,17 +16,18 @@ export default function ToolAnalytics() {
   const totalCalls = data.toolCounts.reduce((a, t) => a + t.count, 0);
 
   return (
-    <div className="page-enter space-y-4">
-      <div className="grid grid-cols-4 gap-3">
+    <div className="page-enter space-y-8">
+      <PageHeader pageName="Tools" />
+      <div className="grid grid-cols-4 gap-6">
         <StatCard label="Total Calls" value={totalCalls.toLocaleString()} />
         <StatCard label="Avg/Session" value={Math.round(data.avgToolCallsPerSession).toString()} />
         <StatCard label="Read:Edit" value={data.readEditRatio.toFixed(1) + ":1"} color="var(--accent-green)" />
         <StatCard label="Unique Tools" value={data.toolCounts.length.toString()} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="card p-4">
-          <p className="section-label">by category</p>
+      <div className="grid grid-cols-2 gap-6">
+        <div className="card p-6">
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>By Category</h2>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={data.categoryBreakdown} layout="vertical">
               <XAxis type="number" {...AXIS_STYLE} /><YAxis type="category" dataKey="category" {...AXIS_STYLE} width={65} />
@@ -34,8 +36,8 @@ export default function ToolAnalytics() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="card p-4">
-          <p className="section-label">top tools</p>
+        <div className="card p-6">
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Top Tools</h2>
           <div className="space-y-1.5 max-h-56 overflow-y-auto">
             {data.toolCounts.slice(0, 15).map(t => (
               <div key={t.tool} className="flex items-center gap-2">
@@ -50,9 +52,9 @@ export default function ToolAnalytics() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div className="card p-4">
-          <p className="section-label">bash commands</p>
+      <div className="grid grid-cols-2 gap-6">
+        <div className="card p-6">
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Bash Commands</h2>
           <div className="space-y-1 max-h-56 overflow-y-auto">
             {data.bashCommands.map(c => (
               <div key={c.command} className="flex items-center justify-between py-0.5">
@@ -63,8 +65,8 @@ export default function ToolAnalytics() {
             {data.bashCommands.length === 0 && <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>No bash commands found.</p>}
           </div>
         </div>
-        <div className="card p-4">
-          <p className="section-label">feature adoption</p>
+        <div className="card p-6">
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Feature Adoption</h2>
           <div className="space-y-2">
             {data.featureAdoption.map(f => (
               <div key={f.feature}>
@@ -80,7 +82,7 @@ export default function ToolAnalytics() {
           </div>
           {data.mcpServers.length > 0 && (
             <>
-              <p className="section-label mt-4">mcp servers</p>
+              <h2 className="mb-4 mt-4">MCP Servers</h2>
               {data.mcpServers.map(s => (
                 <div key={s.server} className="flex items-center justify-between text-[12px]">
                   <span style={{ color: "var(--text)" }}>{s.server}</span>
@@ -93,8 +95,8 @@ export default function ToolAnalytics() {
       </div>
 
       {data.ccVersions.length > 0 && (
-        <div className="card p-4">
-          <p className="section-label">claude code versions</p>
+        <div className="card p-6">
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Claude Code Versions</h2>
           <div className="flex flex-wrap gap-1.5">{data.ccVersions.map(v => <span key={v.version} className="badge">{v.version}</span>)}</div>
         </div>
       )}

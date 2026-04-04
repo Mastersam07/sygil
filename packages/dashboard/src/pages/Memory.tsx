@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
 import StatCard from "../components/StatCard";
+import PageHeader from "../components/PageHeader";
 import EmptyState from "../components/EmptyState";
 import MarkdownBlock from "../components/MarkdownBlock";
 import { fmtDate } from "../lib/format";
@@ -25,8 +26,9 @@ export default function Memory() {
   const types = data?.countByType || [];
 
   return (
-    <div className="page-enter space-y-4">
-      <div className="grid grid-cols-4 gap-3">
+    <div className="page-enter space-y-8">
+      <PageHeader pageName="Memory" />
+      <div className="grid grid-cols-4 gap-6">
         <StatCard label="Memory Files" value={files.length.toString()} />
         <StatCard label="Projects" value={(data?.countByProject.length || 0).toString()} />
         <StatCard label="Stale" value={files.filter(f => f.isStale).length.toString()} color="var(--accent-amber)" />

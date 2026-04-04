@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
 import StatCard from "../components/StatCard";
+import PageHeader from "../components/PageHeader";
 import { TOOLTIP_STYLE, AXIS_STYLE } from "../components/ChartTooltip";
 import { CHART_COLORS } from "../lib/colors";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -22,18 +23,19 @@ export default function Diagnostics() {
   const filtered = logQuery ? data.entries.filter(e => e.message.toLowerCase().includes(logQuery.toLowerCase())) : data.entries;
 
   return (
-    <div className="page-enter space-y-4">
-      <div className="grid grid-cols-4 gap-3">
+    <div className="page-enter space-y-8">
+      <PageHeader pageName="Diagnostics" />
+      <div className="grid grid-cols-4 gap-6">
         <StatCard label="Debug Sessions" value={data.sessionHealth.length.toString()} />
         <StatCard label="Errors" value={data.totalErrors.toString()} color="var(--accent-red)" />
         <StatCard label="Slow Ops" value={data.totalSlowOps.toString()} color="var(--accent-amber)" />
         <StatCard label="Log Entries" value={data.entries.length.toLocaleString()} />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-6">
         {data.errorsByCategory.length > 0 && (
-          <div className="card p-4">
-            <p className="section-label">errors by category</p>
+          <div className="card p-6">
+            <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Errors by Category</h2>
             <ResponsiveContainer width="100%" height={180}>
               <BarChart data={data.errorsByCategory}>
                 <XAxis dataKey="category" {...AXIS_STYLE} /><YAxis {...AXIS_STYLE} />
@@ -43,8 +45,8 @@ export default function Diagnostics() {
             </ResponsiveContainer>
           </div>
         )}
-        <div className="card p-4">
-          <p className="section-label">session health</p>
+        <div className="card p-6">
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Session Health</h2>
           <div className="space-y-1 max-h-44 overflow-y-auto">
             {data.sessionHealth.map(s => (
               <div key={s.sessionId} className="flex items-center gap-2 text-[12px]">
@@ -57,9 +59,9 @@ export default function Diagnostics() {
         </div>
       </div>
 
-      <div className="card p-4">
+      <div className="card p-6">
         <div className="flex items-center gap-2 mb-3">
-          <p className="section-label mb-0">debug log</p>
+          <h2 className="mb-0">Debug Log</h2>
           {["", "error", "slow"].map(s => (
             <button key={s} onClick={() => setSeverity(s)} className="btn text-[10px] py-0.5 px-2"
               style={severity === s ? { borderColor: "var(--accent)", color: "var(--accent)" } : undefined}>{s || "all"}</button>

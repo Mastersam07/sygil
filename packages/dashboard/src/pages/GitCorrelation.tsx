@@ -1,5 +1,6 @@
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
+import PageHeader from "../components/PageHeader";
 import EmptyState from "../components/EmptyState";
 import { TOOLTIP_STYLE, AXIS_STYLE } from "../components/ChartTooltip";
 import { fmtTokens, fmtCost } from "../lib/format";
@@ -12,12 +13,18 @@ interface BranchStats { name: string; sessions: number; tokens: number; cost: nu
 export default function GitCorrelation() {
   const { data, isLoading } = useApi<{ branches: BranchStats[] }>("/analytics/git");
   if (isLoading || !data) return <PageSkeleton />;
-  if (data.branches.length === 0) return <EmptyState title="No branch data" message="Branch info comes from session metadata." icon={<GitBranch size={24} />} />;
+  if (data.branches.length === 0) return (
+    <div className="page-enter space-y-8">
+      <PageHeader pageName="Git" />
+      <EmptyState title="No branch data" message="Branch info comes from session metadata." icon={<GitBranch size={24} />} />
+    </div>
+  );
 
   return (
-    <div className="page-enter space-y-4">
-      <div className="card p-4">
-        <p className="section-label">cost per branch (top 10)</p>
+    <div className="page-enter space-y-8">
+      <PageHeader pageName="Git" />
+      <div className="card p-6">
+        <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Cost per Branch (Top 10)</h2>
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={data.branches.slice(0, 10)} layout="vertical">
             <XAxis type="number" {...AXIS_STYLE} tickFormatter={v => `$${v.toFixed(0)}`} />
