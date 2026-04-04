@@ -47,6 +47,8 @@ export interface ProjectStats {
   name: string;
   hash: string;
   sessionCount: number;
+  messageCount: number;
+  duration: number;
   tokens: TokenUsage;
   cost: number;
   branches: string[];

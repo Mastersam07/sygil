@@ -10,10 +10,13 @@ export function registerProjectRoutes(app: FastifyInstance, claudeDir: string) {
     for (const s of sessions) {
       const existing = projectMap.get(s.projectPath) || {
         path: s.projectPath, name: s.project, hash: s.projectPath,
+        messageCount: 0, duration: 0,
         sessionCount: 0, tokens: { input: 0, output: 0, cacheCreation: 0, cacheRead: 0 } as TokenUsage,
         cost: 0, branches: [], lastActiveAt: "",
       };
       existing.sessionCount += 1;
+      existing.messageCount += s.messageCount;
+      existing.duration += s.duration;
       existing.tokens.input += s.tokens.input;
       existing.tokens.output += s.tokens.output;
       existing.tokens.cacheCreation += s.tokens.cacheCreation;

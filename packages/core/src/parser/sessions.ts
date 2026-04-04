@@ -4,7 +4,7 @@ import type { SessionMeta, SessionMessage, SessionDetail, TokenUsage } from "../
 import { parseJsonlFile } from "./jsonl.js";
 import { calculateCost } from "../pricing.js";
 import { getProjectDirs } from "../detector.js";
-import { extractProjectName } from "../project-roots.js";
+import { resolveProjectRoots } from "../project-roots.js";
 
 interface RawIndexEntry {
   sessionId?: string;
@@ -206,12 +206,14 @@ function parseRawMessages(raw: Record<string, unknown>[]): { messages: SessionMe
 
 export function loadAllSessions(claudeDir: string): SessionMeta[] {
   const projects = getProjectDirs(claudeDir);
+  const projectRootMap = new Map(resolveProjectRoots(claudeDir).map(project => [project.hash, project]));
   const sessions: SessionMeta[] = [];
 
   for (const project of projects) {
     const indexEntries = loadSessionIndex(project.path);
     const sessionFiles = getSessionFiles(project.path);
-    const projectName = extractProjectName(project.hash);
+    const projectInfo = projectRootMap.get(project.hash);
+    const projectName = projectInfo?.name || project.hash;
 
     const indexMap = new Map<string, RawIndexEntry>();
     for (const entry of indexEntries) {
@@ -276,6 +278,7 @@ export function loadAllSessions(claudeDir: string): SessionMeta[] {
 
 export function loadSessionDetail(claudeDir: string, sessionId: string): SessionDetail | null {
   const projects = getProjectDirs(claudeDir);
+  const projectRootMap = new Map(resolveProjectRoots(claudeDir).map(project => [project.hash, project]));
 
   for (const project of projects) {
     const filePath = join(project.path, `${sessionId}.jsonl`);
@@ -283,7 +286,8 @@ export function loadSessionDetail(claudeDir: string, sessionId: string): Session
 
     const raw = parseJsonlFile<Record<string, unknown>>(filePath);
     const { messages, tokens, cost, model, badges } = parseRawMessages(raw);
-    const projectName = extractProjectName(project.hash);
+    const projectInfo = projectRootMap.get(project.hash);
+    const projectName = projectInfo?.name || project.hash;
 
     const indexEntries = loadSessionIndex(project.path);
     const indexEntry = indexEntries.find(e => (e.sessionId || e.id) === sessionId);
