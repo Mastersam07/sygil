@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
+import PageHeader from "../components/PageHeader";
 import EmptyState from "../components/EmptyState";
 import { fmtTokens, fmtCost, timeAgo } from "../lib/format";
 import { Link } from "react-router-dom";
@@ -30,7 +31,7 @@ export default function Sessions() {
   const params = new URLSearchParams({ page: String(page), limit: String(limit), sort, order: "desc" });
   if (query) params.set("q", query);
 
-  const { data, isLoading } = useApi<{ sessions: Session[]; total: number }>(`/sessions?${params}`);
+  const { data, isLoading, mutate } = useApi<{ sessions: Session[]; total: number }>(`/sessions?${params}`);
   if (isLoading && !data) return <PageSkeleton />;
 
   const sessions = data?.sessions || [];
@@ -38,21 +39,40 @@ export default function Sessions() {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <div className="page-enter space-y-4">
-      <div className="flex gap-2 items-center">
+    <div className="page-enter space-y-8">
+      <PageHeader 
+        pageName="sessions" 
+        subtitle={`${total} total sessions`} 
+        onRefresh={() => mutate()} 
+      />
+
+      <div className="flex gap-6 items-center">
         <div className="relative flex-1 max-w-sm">
           <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-muted)" }} />
-          <input type="text" placeholder="Search sessions..." value={query}
+          <input type="text" placeholder="Search project or prompt..." value={query}
             onChange={e => { setQuery(e.target.value); setPage(1); }}
-            className="input w-full pl-9 pr-3 py-2 text-[13px]" />
+            className="input w-full pl-9" />
         </div>
-        <select value={sort} onChange={e => setSort(e.target.value)} className="input px-3 py-2 text-[13px]">
-          <option value="date">Date</option>
+        
+        <div className="flex items-center gap-2 border rounded border-(--border)">
+          {/* Mock filters based on reference app Design Audit */}
+          <button className="px-3 py-1.5 text-[13px] bg-(--bg-hover) text-(--text)">all</button>
+          <button className="px-3 py-1.5 text-[13px] text-(--text-muted) hover:text-(--text) hover:bg-(--bg-hover)">active</button>
+          <button className="px-3 py-1.5 text-[13px] text-(--text-muted) hover:text-(--text) hover:bg-(--bg-hover)">recent</button>
+        </div>
+
+        <div className="flex gap-6 items-center text-[12px] text-(--text-muted) ml-2 border-l border-(--border) pl-4">
+           <label className="flex items-center gap-1.5 cursor-pointer hover:text-(--text)"><input type="checkbox" className="accent-(--accent)" /> ⚡ compacted</label>
+           <label className="flex items-center gap-1.5 cursor-pointer hover:text-(--text)"><input type="checkbox" className="accent-(--accent)" /> 🤖 agent</label>
+           <label className="flex items-center gap-1.5 cursor-pointer hover:text-(--text)"><input type="checkbox" className="accent-(--accent)" /> 🔌 mcp</label>
+        </div>
+
+        <select value={sort} onChange={e => setSort(e.target.value)} className="input ml-auto">
+          <option value="date">Date ↓</option>
           <option value="tokens">Tokens</option>
           <option value="cost">Cost</option>
           <option value="messages">Messages</option>
         </select>
-        <span className="text-[11px] ml-auto" style={{ color: "var(--text-muted)" }}>{total} sessions</span>
       </div>
 
       {sessions.length === 0 ? (
@@ -62,27 +82,32 @@ export default function Sessions() {
           <table className="table">
             <thead>
               <tr>
-                <th>Session</th>
+                <th className="w-24">Date</th>
                 <th>Project</th>
+                <th>Session</th>
                 <th className="text-right">Tokens</th>
                 <th className="text-right">Cost</th>
-                <th className="text-right">When</th>
+                <th className="w-16 text-right">Flags</th>
               </tr>
             </thead>
             <tbody>
               {sessions.map(s => (
-                <tr key={s.id} className="cursor-pointer">
+                <tr key={s.id} className="cursor-pointer group">
+                  <td style={{ color: "var(--text-muted)" }}>
+                    {new Date(s.startedAt).toLocaleDateString([], { month: "numeric", day: "numeric", year: "2-digit" })}
+                  </td>
+                  <td style={{ color: "var(--text-muted)" }}>{s.project || "—"}</td>
                   <td>
                     <Link to={`/sessions/${s.id}`} className="block">
-                      <span style={{ color: "var(--text)" }}>{s.title}</span>
-                      {s.badges.length > 0 && <span className="ml-1.5 text-[11px]">{s.badges.map(b => BADGE_MAP[b] || b).join(" ")}</span>}
-                      {s.branch && <span className="badge ml-1.5">{s.branch}</span>}
+                      <span className="group-hover:text-(--accent) transition-colors" style={{ color: "var(--text)" }}>{s.title}</span>
+                      {s.branch && <span className="badge ml-2">{s.branch}</span>}
                     </Link>
                   </td>
-                  <td style={{ color: "var(--text-muted)" }}>{s.project}</td>
-                  <td className="text-right" style={{ color: "var(--accent-blue)" }}>{fmtTokens(s.tokens.input + s.tokens.output)}</td>
+                  <td className="text-right" style={{ color: "var(--accent-amber)" }}>{fmtTokens(s.tokens.input + s.tokens.output)}</td>
                   <td className="text-right" style={{ color: "var(--accent-green)" }}>{fmtCost(s.cost)}</td>
-                  <td className="text-right" style={{ color: "var(--text-muted)" }}>{timeAgo(s.startedAt)}</td>
+                  <td className="text-right text-[12px]">
+                    {s.badges.map(b => BADGE_MAP[b] || "").join(" ")}
+                  </td>
                 </tr>
               ))}
             </tbody>

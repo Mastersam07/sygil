@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
 import StatCard from "../components/StatCard";
+import PageHeader from "../components/PageHeader";
 import EmptyState from "../components/EmptyState";
 import { fmtDate } from "../lib/format";
 import MarkdownBlock from "../components/MarkdownBlock";
@@ -66,15 +67,16 @@ export default function TaskTracker() {
   if ((tl && !todoData) || (pl && !planData)) return <PageSkeleton />;
 
   return (
-    <div className="page-enter space-y-4">
-      <div className="grid grid-cols-4 gap-3">
+    <div className="page-enter space-y-8">
+      <PageHeader pageName="Tasks" />
+      <div className="grid grid-cols-4 gap-6">
         <StatCard label="Total" value={stats.total.toString()} />
         <StatCard label="Completed" value={stats.completed.toString()} color="var(--accent-green)" />
         <StatCard label="Pending" value={stats.pending.toString()} color="var(--accent-amber)" />
         <StatCard label="Completion" value={`${stats.completionRate.toFixed(0)}%`} />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_300px] gap-6">
         <div>
           <div className="flex flex-wrap gap-1.5 mb-3">
             {["all", "pending", "in_progress", "completed"].map(s => (
@@ -153,11 +155,11 @@ export default function TaskTracker() {
         </div>
 
         <div>
-          <p className="section-label">plans</p>
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Plans</h2>
           {plans.length === 0 ? <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>No plans found.</p> : (
             <div className="space-y-2">
               {plans.map(p => (
-                <div key={p.name} className="card p-3">
+                <div key={p.name} className="card p-4">
                   <div className="flex items-center gap-1.5 mb-1"><FileText size={12} style={{ color: "var(--accent-cyan)" }} /><span className="text-[13px] font-bold" style={{ color: "var(--text-primary)" }}>{p.name}</span></div>
                   <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>modified: {fmtDate(p.modifiedAt)}</p>
                   <div className="mt-2 max-h-56 overflow-y-auto">

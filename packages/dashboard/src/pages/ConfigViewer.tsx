@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
+import PageHeader from "../components/PageHeader";
 import EmptyState from "../components/EmptyState";
 import MarkdownBlock from "../components/MarkdownBlock";
 import { Settings, Shield, ShieldOff, Server, ChevronDown, ChevronRight } from "lucide-react";
@@ -17,29 +18,35 @@ export default function ConfigViewer() {
   if (isLoading || !data) return <PageSkeleton />;
 
   const empty = !data.globalClaudeMd && !data.globalSettings && data.mcpServers.length === 0 && data.permissions.length === 0;
-  if (empty) return <EmptyState title="No config found" message="Your Claude Code config will appear here." icon={<Settings size={24} />} />;
+  if (empty) return (
+    <div className="page-enter space-y-8">
+      <PageHeader pageName="Config" />
+      <EmptyState title="No config found" message="Your Claude Code config will appear here." icon={<Settings size={24} />} />
+    </div>
+  );
 
   return (
-    <div className="page-enter space-y-4">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+    <div className="page-enter space-y-8">
+      <PageHeader pageName="Config" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {data.globalClaudeMd && (
-          <div className="card p-4"><p className="section-label">CLAUDE.md</p><div className="max-h-72 overflow-y-auto"><MarkdownBlock content={data.globalClaudeMd} /></div></div>
+          <div className="card p-6"><h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>CLAUDE.md</h2><div className="max-h-72 overflow-y-auto"><MarkdownBlock content={data.globalClaudeMd} /></div></div>
         )}
         {data.globalSettings && (
-          <div className="card p-4"><p className="section-label">settings.json</p><JsonBlock data={data.globalSettings} /></div>
+          <div className="card p-6"><h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>settings.json</h2><JsonBlock data={data.globalSettings} /></div>
         )}
       </div>
 
       {data.claudeJson && (
-        <div className="card p-4">
-          <p className="section-label">.claude.json</p>
+        <div className="card p-6">
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>.claude.json</h2>
           <JsonBlock data={data.claudeJson} />
         </div>
       )}
 
       {data.permissions.length > 0 && (
-        <div className="card p-4">
-          <p className="section-label">permissions</p>
+        <div className="card p-6">
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Permissions</h2>
           <div className="space-y-1">
             {data.permissions.map((p, i) => (
               <div key={i} className="flex items-center gap-2 text-[13px]">
@@ -54,7 +61,7 @@ export default function ConfigViewer() {
 
       {data.mcpServers.length > 0 && (
         <div className="card overflow-hidden">
-          <div className="p-3"><p className="section-label mb-0">mcp servers</p></div>
+          <div className="p-5"><h2 className="mb-0">MCP Servers</h2></div>
           <table className="table">
             <thead><tr><th>Name</th><th>Type</th><th>Command / URL</th><th>Scope</th></tr></thead>
             <tbody>{data.mcpServers.map(s => (
@@ -65,11 +72,11 @@ export default function ConfigViewer() {
       )}
 
       {(data.installedSkills.length > 0 || data.installedPlugins.length > 0) && (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="card p-4"><p className="section-label">skills</p>
+        <div className="grid grid-cols-2 gap-6">
+          <div className="card p-6"><h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Skills</h2>
             {data.installedSkills.length === 0 ? <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>None</p> : data.installedSkills.map(s => <div key={s.path} className="mb-1"><p className="text-[12px]" style={{ color: "var(--text-primary)" }}>{s.name}</p><p className="text-[11px]" style={{ color: "var(--text-muted)" }}>{s.description || s.path}</p></div>)}
           </div>
-          <div className="card p-4"><p className="section-label">plugins</p>
+          <div className="card p-6"><h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Plugins</h2>
             {data.installedPlugins.length === 0 ? <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>None</p> : data.installedPlugins.map(p => <div key={`${p.id}-${p.scope}`} className="mb-1"><p className="text-[12px]" style={{ color: "var(--text-primary)" }}>{p.id}</p><p className="text-[11px]" style={{ color: "var(--text-muted)" }}>{p.version} · {p.scope}</p></div>)}
           </div>
         </div>
@@ -77,7 +84,7 @@ export default function ConfigViewer() {
 
       {data.projectConfigs.length > 0 && (
         <div className="space-y-1">
-          <p className="section-label">per-project</p>
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Per-Project</h2>
           {data.projectConfigs.map(pc => (
             <div key={pc.project} className="card">
               <button onClick={() => setExpandedProject(expandedProject === pc.project ? null : pc.project)} className="w-full flex items-center gap-2 p-3 text-left text-[13px]">

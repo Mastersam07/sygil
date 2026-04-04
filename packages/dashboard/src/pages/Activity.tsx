@@ -1,6 +1,7 @@
 import { useApi } from "../hooks/useApi";
 import { PageSkeleton } from "../components/Skeleton";
 import StatCard from "../components/StatCard";
+import PageHeader from "../components/PageHeader";
 import { TOOLTIP_STYLE, AXIS_STYLE } from "../components/ChartTooltip";
 import { fmtTokens } from "../lib/format";
 import { CHART_COLORS } from "../lib/colors";
@@ -39,19 +40,20 @@ export default function Activity() {
   if (isLoading || !data) return <PageSkeleton />;
 
   return (
-    <div className="page-enter space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+    <div className="page-enter space-y-8">
+      <PageHeader pageName="Activity" />
+      <div className="grid grid-cols-3 gap-6">
         <StatCard label="Current Streak" value={`${data.currentStreak} days`} color="var(--accent-amber)" />
         <StatCard label="Longest Streak" value={`${data.longestStreak} days`} color="var(--accent-green)" />
         <StatCard label="Active Days" value={data.heatmap.filter(d => d.count > 0).length.toString()} sub="in the last year" />
       </div>
-      <div className="card p-4">
-        <p className="section-label">contribution heatmap</p>
+      <div className="card p-6">
+        <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Contribution Heatmap</h2>
         <HeatmapGrid data={data.heatmap} />
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="card p-4">
-          <p className="section-label">day of week</p>
+      <div className="grid grid-cols-2 gap-6">
+        <div className="card p-6">
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Day of Week</h2>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={data.dayOfWeek.map(d => ({ ...d, name: DAY_LABELS[d.day] }))}>
               <XAxis dataKey="name" {...AXIS_STYLE} /><YAxis {...AXIS_STYLE} />
@@ -60,8 +62,8 @@ export default function Activity() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-        <div className="card p-4">
-          <p className="section-label">peak hours</p>
+        <div className="card p-6">
+          <h2 className="mb-8 text-[12px] font-bold tracking-[0.1em]" style={{ color: "var(--text-muted)" }}>Peak Hours</h2>
           <ResponsiveContainer width="100%" height={180}>
             <BarChart data={data.hourOfDay}>
               <XAxis dataKey="hour" {...AXIS_STYLE} tickFormatter={h => `${h}h`} /><YAxis {...AXIS_STYLE} tickFormatter={fmtTokens} />
