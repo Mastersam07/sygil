@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { Moon, Sun, Wifi, WifiOff } from "lucide-react";
+import { Moon, Sun, Wifi, WifiOff, Star } from "lucide-react";
 
 const NAV = [
   {
@@ -51,10 +51,20 @@ export default function Sidebar({ connected }: { connected: boolean }) {
 
   return (
     <aside className="sidebar">
-      <div className="px-4 pt-6 pb-6">
+      <div className="px-4 pt-6 pb-4">
         <span className="text-[17px] font-bold tracking-wide" style={{ color: "var(--accent)" }}>
           Sygil Console
         </span>
+        <a
+          href="https://github.com/Mastersam07/sygil"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1.5 mt-3 text-[11px] rounded hover:opacity-100 opacity-70 transition-opacity"
+          style={{ color: "var(--accent-amber)" }}
+        >
+          <Star size={12} />
+          Star on GitHub
+        </a>
       </div>
 
       <nav className="flex-1 overflow-y-auto">
